@@ -194,7 +194,8 @@ export class CatalogService {
       if (dup.length) throw new ApiError(409, 'ALREADY_EXISTS', `Năm học ${name} đã tồn tại.`);
       const [row] = await sql`
         INSERT INTO school_years (school_id, name, is_active, active_days)
-        VALUES (${sid}, ${name}, false,
+        VALUES (${sid}, ${name},
+                NOT EXISTS (SELECT 1 FROM school_years WHERE school_id = ${sid} AND is_active),
                 ${body?.activeDays?.length ? body.activeDays : [1, 2, 3, 4, 5, 6]})
         RETURNING *`;
       return row;

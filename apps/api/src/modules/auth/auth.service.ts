@@ -18,7 +18,7 @@ function slugify(name: string): string {
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'truong';
 }
 
-async function issueTokens(db: Pick<DbService, 'sql'>, userId: string): Promise<TokenPair> {
+async function issueTokens(db: { sql: any }, userId: string): Promise<TokenPair> {
   const accessToken = signJwt({ sub: userId }, 15 * 60);
   const refreshToken = crypto.randomBytes(48).toString('hex');
   await db.sql`INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
@@ -59,10 +59,12 @@ export class AuthService {
       // Gói miễn phí mặc định, dùng thử 30 ngày đầy đủ tính năng
       await sql`
         INSERT INTO subscriptions (school_id, plan_id, status, trial_ends_at)
-        SELECT ${school.id}, p.id, now() + interval '30 days'
+        SELECT ${school.id}, p.id, 'trialing', now() + interval '30 days'
         FROM plans p WHERE p.code = 'free'`;
 
-      const tokens = await issueTokens(this.db, String(user.id));
+      // Dùng đúng transaction hiện tại: user chưa commit nên kết nối khác chưa
+      // thể nhìn thấy bản ghi để tạo refresh token có khoá ngoại.
+      const tokens = await issueTokens({ sql }, String(user.id));
       return { user, school, ...tokens };
     });
   }

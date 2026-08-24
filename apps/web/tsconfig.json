@@ -7,7 +7,6 @@
     "jsx": "react-jsx",
     "strict": true,
     "allowImportingTsExtensions": true,
-    "strict": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "noEmit": true,

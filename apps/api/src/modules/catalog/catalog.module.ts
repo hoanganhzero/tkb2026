@@ -8,11 +8,9 @@ import { CatalogService } from './catalog.service.js';
  * Đường dẫn: /schools/:sid/years/:yid/{resource}[/:id]
  * Resource hợp lệ: grades departments subjects rooms teachers classes.
  */
-@Controller('schools/:sid/years/:yid')
-export class CatalogController {
+@Controller('schools/:sid')
+export class YearsController {
   constructor(@Inject(CatalogService) private svc: CatalogService) {}
-
-  /* ---- Endpoint đặc biệt đặt TRƯỚC route generic :resource/:id ---- */
 
   @Post('years')
   createYear(
@@ -22,6 +20,19 @@ export class CatalogController {
     return this.svc.createYear(sid, body);
   }
 
+  /** Năm học của trường — cho bộ chọn ngữ cảnh trên topbar */
+  @Get('years')
+  years(@Param('sid') sid: string) {
+    return this.svc.listYears(sid);
+  }
+}
+
+@Controller('schools/:sid/years/:yid')
+export class CatalogController {
+  constructor(@Inject(CatalogService) private svc: CatalogService) {}
+
+  /* ---- Endpoint đặc biệt đặt TRƯỚC route generic :resource/:id ---- */
+
   @Post('periods/bulk')
   bulkPeriods(
     @Param('sid') sid: string,
@@ -29,13 +40,6 @@ export class CatalogController {
     @Body() body: { slots?: Array<{ session: string; ordinal: number; name: string; startTime?: string; endTime?: string; dayPosition: number }> },
   ) {
     return this.svc.bulkPeriods(sid, yid, body?.slots ?? []);
-  }
-
-  /** Năm học của trường — cho bộ chọn ngữ cảnh trên topbar */
-  @Get('years')
-  @Get('years')
-  years(@Param('sid') sid: string) {
-    return this.svc.listYears(sid);
   }
 
   /** Khung tiết của năm đang chọn */
@@ -114,7 +118,7 @@ export class CatalogController {
 }
 
 @Module({
-  controllers: [CatalogController],
+  controllers: [YearsController, CatalogController],
   providers: [CatalogService]
 })
 export class CatalogModule {}

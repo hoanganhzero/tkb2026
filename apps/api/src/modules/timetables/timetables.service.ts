@@ -312,11 +312,11 @@ export class TimetablesService {
       // Xung đột cứng: lớp/GV đã có tiết ở ô đích?
       const clash = await sql`
         SELECT 'teacher' AS kind, u.name FROM (
-          SELECT je.teacher_id AS id FROM lesson_teachers jt
+          SELECT jt.teacher_id AS id FROM lesson_teachers jt
           JOIN lessons jl ON jl.id = jt.lesson_id
-          JOIN assignment_teachers at2 ON at2.assignment_id = ${dto.assignmentId}
-          JOIN unnest(at2.teacher_id::uuid[]) AS je(teacher_id)
-            ON je.teacher_id = jt.teacher_id
+          JOIN assignment_teachers at2
+            ON at2.assignment_id = ${dto.assignmentId}
+           AND at2.teacher_id = jt.teacher_id
           WHERE jl.timetable_id = ${timetableId}
             AND jl.day_of_week = ${dto.dayOfWeek} AND jl.period_id = ${dto.periodId}
         ) q JOIN teachers u ON u.id = q.id
@@ -324,9 +324,9 @@ export class TimetablesService {
         SELECT 'class', u.name FROM (
           SELECT jc.class_id AS id FROM lesson_classes jc
           JOIN lessons jl ON jl.id = jc.lesson_id
-          JOIN assignment_classes ac2 ON ac2.assignment_id = ${dto.assignmentId}
-          JOIN unnest(ac2.class_id::uuid[]) AS je(class_id)
-            ON je.class_id = jc.class_id
+          JOIN assignment_classes ac2
+            ON ac2.assignment_id = ${dto.assignmentId}
+           AND ac2.class_id = jc.class_id
           WHERE jl.timetable_id = ${timetableId}
             AND jl.day_of_week = ${dto.dayOfWeek} AND jl.period_id = ${dto.periodId}
         ) q JOIN classes u ON u.id = q.id`;

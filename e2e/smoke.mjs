@@ -80,7 +80,7 @@ async function main() {
     periods.push({ session: 'morning', ordinal: i + 1, name: `Tiet ${i + 1}`,
       startTime: times[i], dayPosition: i + 1 });
   }
-  const per = await req('POST', `/v1/schools/${schoolId}/periods/bulk`, { slots: periods });
+  const per = await req('POST', `/v1/schools/${schoolId}/years/${yid}/periods/bulk`, { slots: periods });
   ok(per.status < 300, 'bulk khung tiet');
   const periodList = per.json?.data || [];
   ok(periodList.length === 3, 'du 3 tiet');
