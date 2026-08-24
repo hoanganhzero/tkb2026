@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thời khóa biểu — THPT Nguyễn Đình Chiểu — HK I 2026-2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-app:#F2F4F7;--bg-surface:#FFFFFF;--bg-sunken:#E7EAF0;
+  --line-hair:#E3E7EE;--line-solid:#C9D0DB;--line-strong:#8A93A3;
+  --text-primary:#131A24;--text-secondary:#5B6472;--text-muted:#8A93A3;
+  --brand-900:#0F2A5C;--brand-700:#1B4A9C;--brand-600:#2563C7;--brand-100:#DCE8FB;
+  --font-ui:'Be Vietnam Pro',system-ui,sans-serif;--font-data:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-ui);color:var(--text-primary);background:var(--bg-app);
+  font-size:14px;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--font-data);font-variant-numeric:tabular-nums}
+button{font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border-radius:6px;
+  border:1px solid var(--line-solid);background:var(--bg-surface);color:var(--text-primary);
+  padding:8px 14px;display:inline-flex;align-items:center;gap:7px}
+button:hover{background:var(--bg-sunken)}
+button.pri{background:var(--brand-600);border-color:var(--brand-600);color:#fff}
+button.pri:hover{background:var(--brand-700)}
+:focus-visible{outline:2px solid var(--brand-600);outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+
+/* ---------- Đầu trang ---------- */
+.pub-top{background:var(--brand-900);color:#fff;padding:18px 0}
+.pub-top .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.school-badge{width:42px;height:42px;border-radius:9px;background:rgba(255,255,255,.14);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:0 0 42px}
+.pub-top h1{font-size:19px;font-weight:800;line-height:1.25}
+.pub-top .meta{font-size:12.5px;color:rgba(255,255,255,.72);margin-top:2px}
+.pub-top .sp{flex:1}
+.pub-actions{display:flex;gap:9px;flex-wrap:wrap}
+.pub-actions button{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.28);color:#fff}
+.pub-actions button:hover{background:rgba(255,255,255,.2)}
+
+/* ---------- Thanh điều khiển ---------- */
+.controls{background:var(--bg-surface);border-bottom:1px solid var(--line-solid);padding:10px 0}
+.controls .wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.seg{display:flex;background:var(--bg-sunken);border-radius:6px;padding:2px}
+.seg button{border:none;background:none;padding:6px 14px;border-radius:4px;color:var(--text-secondary);font-weight:500}
+.seg button.on{background:var(--bg-surface);color:var(--text-primary);font-weight:600;
+  box-shadow:0 1px 2px rgba(19,26,36,.12)}
+.controls select{font-family:inherit;font-size:13.5px;font-weight:600;color:var(--text-primary);
+  padding:8px 34px 8px 12px;border:1px solid var(--line-solid);border-radius:6px;background:var(--bg-surface)}
+.controls .info{font-size:12.5px;color:var(--text-secondary)}
+.controls .info b{font-weight:600;color:var(--text-primary)}
+
+/* ---------- Lưới ---------- */
+.grid-scroll{overflow:auto;max-height:calc(100vh - 300px);margin:18px 0 8px;
+  background:var(--bg-surface);border:1px solid var(--line-solid);border-radius:10px}
+table.grid{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
+.grid th,.grid td{padding:0}
+.grid thead th{position:sticky;top:0;z-index:3;background:var(--bg-surface);
+  height:44px;border-bottom:1px solid var(--line-solid);
+  font-size:12px;font-weight:700;color:var(--text-secondary)}
+.grid thead tr.days th.dg{border-left:1px solid var(--line-solid)}
+.grid thead th.today{color:var(--brand-600);box-shadow:inset 0 -2px 0 var(--brand-600)}
+.grid thead tr.pers th{height:22px;top:44px;font-family:var(--font-data);font-size:10.5px;
+  font-weight:500;color:var(--text-muted);z-index:4}
+.rowhead{position:sticky;left:0;z-index:2;background:var(--bg-surface);min-width:96px;
+  border-right:1px solid var(--line-solid);padding:6px 10px;text-align:left;vertical-align:middle}
+.rowhead b{display:block;font-size:13px;font-weight:700}
+.rowhead small{display:block;font-size:10.5px;color:var(--text-muted);font-family:var(--font-data)}
+td.cell{width:88px;height:48px;border-right:1px solid var(--line-hair);
+  border-bottom:1px solid var(--line-hair);background:var(--bg-surface);vertical-align:top;position:relative}
+td.cell.de{border-right:2px solid var(--line-strong)}
+td.cell.empty{background:var(--bg-sunken)}
+.lsn{margin:1px;border-radius:4px;height:calc(100% - 2px);padding:4px 6px 3px 8px;
+  position:relative;line-height:1.15;overflow:hidden}
+.lsn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:4px 0 0 4px}
+.lsn .s{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lsn .t{font-size:10px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lsn .r{font-size:9.5px;font-family:var(--font-data);color:var(--text-muted)}
+.legend{display:flex;flex-wrap:wrap;gap:5px 14px;padding:10px 2px 26px}
+.legend span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-secondary)}
+.legend i{width:10px;height:10px;border-radius:2px;border-left:2.5px solid transparent}
+
+/* ---------- Danh sách ngày (điện thoại) ---------- */
+.daylist{display:none;margin:16px 0 30px}
+.dayblock{background:var(--bg-surface);border:1px solid var(--line-solid);border-radius:10px;
+  margin-bottom:14px;overflow:hidden}
+.dayblock h3{font-size:13px;font-weight:700;padding:11px 15px;border-bottom:1px solid var(--line-hair);
+  display:flex;align-items:center;gap:8px}
+.dayblock h3 small{font-family:var(--font-data);font-weight:500;color:var(--text-muted)}
+.pill-today{font-size:10.5px;font-weight:700;color:var(--brand-700);background:var(--brand-100);
+  padding:2px 9px;border-radius:99px}
+.drow{display:flex;gap:12px;padding:10px 15px;border-bottom:1px solid var(--line-hair);align-items:flex-start}
+.drow:last-child{border-bottom:none}
+.drow .tm{font-family:var(--font-data);font-size:11px;color:var(--text-muted);
+  width:78px;flex:0 0 78px;padding-top:3px;text-align:right}
+.drow .dot{width:4px;align-self:stretch;border-radius:3px;flex:0 0 4px}
+.drow .bd b{font-size:13.5px;display:block}
+.drow .bd span{font-size:11.5px;color:var(--text-secondary)}
+
+/* ---------- In ---------- */
+#printHead{display:none}
+
+/* ---------- Toast ---------- */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:99;
+  background:var(--text-primary);color:#fff;padding:10px 18px;border-radius:99px;
+  font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.25s}
+#toast.show{opacity:1}
+
+footer{padding:20px 0 34px;font-size:12px;color:var(--text-muted)}
+footer .wrap{display:flex;gap:16px;flex-wrap:wrap}
+footer a{color:var(--brand-600);font-weight:600}
+
+/* ---------- Responsive ---------- */
+@media(max-width:719px){
+  .grid-scroll{display:none}
+  .daylist{display:block}
+  td.cell{width:auto}
+  .pub-top .sp{display:none}
+  .pub-actions{width:100%}
+  .pub-actions button{flex:1;justify-content:center}
+}
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  .pub-top,.controls,.legend,footer,#toast{display:none!important}
+  body{background:#fff}
+  .grid-scroll{max-height:none;border:none;border-radius:0;overflow:visible;margin:0}
+  #printHead{display:block;text-align:center;margin-bottom:10mm}
+  #printHead .agency{font-size:13px;font-weight:700;text-transform:uppercase}
+  #printHead .title{font-size:17px;font-weight:800;text-transform:uppercase;margin-top:5mm}
+  #printHead .sub{font-size:12.5px;color:#333;margin-top:2mm;font-style:normal}
+  .lsn{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rowhead,.grid thead th{position:static}
+  td.cell{height:38px}
+}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<header class="pub-top">
+  <div class="wrap">
+    <span class="school-badge">NĐC</span>
+    <div>
+      <h1>Trường THPT Nguyễn Đình Chiểu</h1>
+      <p class="meta mono">Năm học 2026–2027 · Học kỳ I · Áp dụng từ thứ Hai 07/09/2026</p>
+    </div>
+    <span class="sp"></span>
+    <div class="pub-actions">
+      <button id="btnIcs" type="button">Thêm vào lịch điện thoại (.ics)</button>
+      <button type="button" onclick="window.print()">In / lưu PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="wrap">
+    <span style="font-size:12px;font-weight:600;color:var(--text-muted)">Xem theo</span>
+    <div class="seg" role="tablist">
+      <button type="button" class="on" data-mode="class" id="tabClass">Lớp</button>
+      <button type="button" data-mode="teacher" id="tabTeacher">Giáo viên</button>
+    </div>
+    <select id="selClass" aria-label="Chọn lớp"></select>
+    <select id="selTeacher" aria-label="Chọn giáo viên" hidden></select>
+    <span class="info" id="infoLine">—</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="printHead">
+    <div class="agency">Sở Giáo dục và Đào tạo Bến Tre — Trường THPT Nguyễn Đình Chiểu</div>
+    <div class="title" id="phTitle">THỜI KHÓA BIỂU</div>
+    <div class="sub">Học kỳ I · Năm học 2026–2027 · Áp dụng từ ngày 07/09/2026</div>
+  </div>
+
+  <div class="grid-scroll"><table class="grid" id="grid"></table></div>
+  <div class="daylist" id="daylist"></div>
+
+  <div class="legend" id="legend"></div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>Dữ liệu mô phỏng phục vụ trình diễn trang xem công khai.</span>
+    <span class="sp" style="flex:1"></span>
+    <a href="tkb_landing.html">Sản phẩm TKB</a>
+  </div>
+</footer>
+
+<div id="toast" role="status"></div>
+
+<script>
+/* =========================================================================
+   Dữ liệu mô phỏng + xếp lịch thật (không xung đột) chạy trong trình duyệt.
+   Seed cố định — mọi người xem thấy cùng một thời khoá biểu.
+   ========================================================================= */
+(function () {
+  var D = 6, P = 5, S = D * P, TPERSUBJ = 2;
+  var DAYNAMES = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  var TIMES = [['07:00', '07:45'], ['07:50', '08:35'], ['08:40', '09:25'], ['09:45', '10:30'], ['10:35', '11:20']];
+  var SEM_START = new Date(2026, 8, 7);   /* thứ Hai 07/09/2026 */
+  var SEM_END = new Date(2027, 0, 15);
+
+  var SUBJ = [
+    ['Toán', '#DCEAFB', '#2F6FBF', 4], ['Ngữ văn', '#FBE0E0', '#C25454', 4],
+    ['Tiếng Anh', '#D6F0EF', '#2E8E8A', 3], ['Vật lí', '#FCE8D5', '#C97B2E', 2],
+    ['Hoá học', '#E8E0F7', '#7A5BC2', 2], ['Sinh học', '#DDF2DF', '#4A9455', 2],
+    ['Lịch sử', '#F8F0CE', '#B39415', 1], ['Địa lí', '#DFE6EC', '#5C7488', 1],
+    ['GDCD', '#F7DCD2', '#BC5B38', 1], ['Tin học', '#DDE1F5', '#5461B8', 2],
+    ['Công nghệ', '#E6EED7', '#78913F', 1], ['Thể dục', '#EDE3D8', '#8A6A4A', 2]
+  ];
+  var SHORT = ['Toán', 'Văn', 'Anh', 'Lí', 'Hoá', 'Sinh', 'Sử', 'Địa', 'GDCD', 'Tin', 'CN', 'TD'];
+  var SPECIAL_ROOM = { 9: 'Phòng máy 1', 11: 'Sân trường', 10: 'Xưởng' };
+  var CLASSES = [
+    { n: '10A1', r: 'A201' }, { n: '10A2', r: 'A202' }, { n: '10A3', r: 'A203' }, { n: '10A4', r: 'A204' },
+    { n: '11A1', r: 'B201' }, { n: '11A2', r: 'B202' }, { n: '11A3', r: 'B203' }, { n: '11A4', r: 'B204' },
+    { n: '12A1', r: 'C101' }, { n: '12A2', r: 'C102' }, { n: '12A3', r: 'C103' }, { n: '12A4', r: 'C104' }
+  ];
+  var CN = CLASSES.length;
+
+  /* ---------- Giáo viên ---------- */
+  var HO = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương'];
+  var DEM_M = ['Văn', 'Đức', 'Hữu', 'Quang', 'Minh', 'Thanh'];
+  var DEM_F = ['Thị', 'Thu', 'Ngọc', 'Kim', 'Hồng', 'Mai'];
+  var TEN = ['Hùng', 'Bình', 'Sơn', 'Nam', 'An', 'Dũng', 'Tuấn', 'Long', 'Hà', 'Lan', 'Mai', 'Hoa',
+             'Thảo', 'Trang', 'Yến', 'Linh', 'Nga', 'Vân', 'Chi', 'Hạnh', 'Quyên', 'Nhung', 'Tâm', 'Phúc'];
+
+  var seed = 20260907;
+  function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+
+  var TEACHERS = [];
+  SUBJ.forEach(function (_, si) {
+    for (var k = 0; k < TPERSUBJ; k++) {
+      var female = rnd() < 0.55;
+      var name = HO[(rnd() * HO.length) | 0] + ' ' +
+        (female ? DEM_F[(rnd() * DEM_F.length) | 0] : DEM_M[(rnd() * DEM_M.length) | 0]) + ' ' +
+        TEN[(rnd() * TEN.length) | 0];
+      TEACHERS.push({ name: name, short: (female ? 'C.' : 'T.') + name.split(' ').pop(), subj: si });
+    }
+  });
+  var TN = TEACHERS.length;
+
+  /* ---------- Tiết học: 25 tiết/lớp + Chào cờ ghim Thứ 2 tiết 1 ---------- */
+  var LESSONS = [];
+  CLASSES.forEach(function (c, ci) {
+    SUBJ.forEach(function (_, si) {
+      var t = si * TPERSUBJ + (ci % TPERSUBJ);
+      for (var k = 0; k < SUBJ[si][3]; k++) LESSONS.push({ c: ci, s: si, t: t });
+    });
+  });
+  var CC_PER_CLASS = CN;                       /* 12 tiết Chào cờ ghim */
+  var N = LESSONS.length;
+
+  var classAt = new Int16Array(CN * S).fill(-1);
+  var teachAt = new Int16Array(TN * S).fill(-1);
+  var ccSlot = 0;                              /* Thứ Hai tiết 1 */
+
+  function canPlace(c, t, s) {
+    return classAt[c * S + s] < 0 && teachAt[t * S + s] < 0;
+  }
+  function commit(li, s) {
+    var L = LESSONS[li];
+    classAt[L.c * S + s] = li; teachAt[L.t * S + s] = li; L.slot = s;
+  }
+  function cost(c, sj, s) {
+    var cost = 0, d = (s / P) | 0, pos = s % P, q, o;
+    for (q = d * P; q < d * P + P; q++) { o = classAt[c * S + q]; if (o >= 0 && LESSONS[o].s === sj) cost += 45; }
+    var f = -1, l = -1, n = 0;
+    for (q = d * P; q < d * P + P; q++) if (classAt[c * S + q] >= 0) { if (f < 0) f = q; l = q; n++; }
+    if (f >= 0 && s >= f && s <= l && (l - f + 1 - n) > 0) cost += (l - f + 1 - n) * 28;
+    return cost + rnd() * 14;
+  }
+  function tryPlace(li, soft) {
+    var L = LESSONS[li], s, cs;
+    var teachers = [L.t, (L.t % 2 === 0) ? L.t + 1 : L.t - 1];
+    for (var ti = 0; ti < teachers.length; ti++) {
+      var t = teachers[ti], best = -1, bc = Infinity;
+      for (s = ccSlot + 1; s < S; s++) {
+        if (!canPlace(L.c, t, s)) continue;
+        if (!soft) { best = s; break; }
+        cs = cost(L.c, L.s, s);
+        if (cs < bc) { bc = cs; best = s; }
+      }
+      if (best >= 0) { L.t = t; commit(li, best); return true; }
+      soft = false;
+    }
+    return false;
+  }
+  function shuffled() {
+    var a = [], i, j, tmp;
+    for (i = 0; i < N; i++) a.push(i);
+    for (i = a.length - 1; i > 0; i--) { j = (rnd() * (i + 1)) | 0; tmp = a[i]; a[i] = a[j]; a[j] = tmp; }
+    return a;
+  }
+  var CC_PUSHED = false;
+  function pinCC() {
+    if (!CC_PUSHED) {
+      CLASSES.forEach(function (_, ci) {
+        LESSONS.push({ c: ci, s: -1, t: ci, slot: ccSlot, cc: true });
+      });
+      CC_PUSHED = true;
+    }
+    classAt.fill(-1); teachAt.fill(-1);
+    CLASSES.forEach(function (_, ci) {
+      classAt[ci * S + ccSlot] = N + ci;
+      teachAt[ci * S + ccSlot] = N + ci;       /* teachAt luôn chứa CHỈ SỐ TIẾT */
+      LESSONS[N + ci].slot = ccSlot;
+    });
+    for (var z = 0; z < N; z++) LESSONS[z].slot = -1;
+  }
+  function solve() {
+    /* Ghim Chào cờ: Thứ 2 tiết 1 do GVCN đứng lớp. Retry reset sạch trạng thái
+       trước mỗi vòng — nếu không sẽ tạo ô ma khi vòng trước đặt dở */
+    for (var attempt = 0; attempt < 10; attempt++) {
+      pinCC();
+      var ok = true;
+      var ord = shuffled();
+      for (var i = 0; i < ord.length; i++) if (!tryPlace(ord[i], true)) ok = false;
+      if (ok) break;
+    }
+  }
+  solve();
+
+  function lessonAt(c, s) {
+    var li = classAt[c * S + s];
+    return li >= 0 ? LESSONS[li] : null;
+  }
+
+  /* =========================================================================
+     Hiển thị
+     ========================================================================= */
+  var $ = function (id) { return document.getElementById(id); };
+  var mode = 'class';
+  var selC = 0, selT = 0;
+
+  function esc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function subjOf(sj) {
+    if (sj === -1) return ['Chào cờ', '#EDF0F5', '#8A93A3'];
+    return SUBJ[sj];
+  }
+  function roomOf(sj, ci) {
+    if (sj === -1 || sj === 11) return 'Sân trường';
+    if (sj === 9) return SPECIAL_ROOM[9];
+    if (sj === 10) return SPECIAL_ROOM[10];
+    return CLASSES[ci].r;
+  }
+  function dowToday() {
+    var now = new Date();
+    if (now < SEM_START || now > SEM_END) return -1;
+    return (now.getDay() + 6) % 7;
+  }
+  function fmtDate(d) {
+    return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2);
+  }
+  function weekDates() {
+    var base = new Date(SEM_START), now = new Date();
+    if (now >= SEM_START && now <= SEM_END) {
+      var monday = new Date(now);
+      monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+      base = monday;
+    }
+    var out = [];
+    for (var d = 0; d < D; d++) { var x = new Date(base); x.setDate(base.getDate() + d); out.push(x); }
+    return out;
+  }
+
+  function cellHtml(lsn, ci, showTeacher) {
+    if (!lsn) return '<td class="cell empty"></td>';
+    var sj = subjOf(lsn.s);
+    var room = roomOf(lsn.s, lsn.c);
+    var special = sj === -1 || lsn.s === 9 || lsn.s === 10 || lsn.s === 11;
+    var roomLine = special ? '<div class="r">' + esc(room) + '</div>'
+      : (showTeacher ? (room !== CLASSES[ci].r ? '<div class="r">' + esc(room) + '</div>' : '')
+                     : '<div class="r">' + esc(room) + '</div>');
+    var teacherLine = showTeacher
+      ? '<div class="t">' + esc(TEACHERS[lsn.t].short) + '</div>'
+      : '<div class="t">' + esc(CLASSES[lsn.c].n) + '</div>';
+    return '<td class="cell"><div class="lsn" style="background:' + sj[1] + '">' +
+      '<div class="s">' + esc(sj === -1 ? 'Chào cờ' : SHORT[lsn.s]) + '</div>' +
+      teacherLine + roomLine +
+      '<i style="position:absolute;left:0;top:0;bottom:0;width:3px;background:' + sj[2] + '"></i>' +
+      '</div></td>';
+  }
+
+  function render() {
+    var dates = weekDates(), today = dowToday();
+    var g = '<thead><tr>';
+    g += '<th style="left:0;z-index:5;min-width:96px;border-right:1px solid var(--line-solid)"></th>';
+    for (var d = 0; d < D; d++)
+      g += '<th class="dg' + (d === today ? ' today' : '') + '" colspan="' + P + '"' +
+           (d > 0 ? ' style="border-left:1px solid var(--line-solid)"' : '') + '>' +
+           DAYNAMES[d] + ' <span style="font-weight:500;color:var(--text-muted)" class="mono">' +
+           fmtDate(dates[d]) + '</span></th>';
+    g += '</tr><tr><th style="left:0;z-index:5"></th>';
+    for (var d2 = 0; d2 < D; d2++) for (var p = 0; p < P; p++) g += '<th>' + (p + 1) + '</th>';
+    g += '</tr></thead><tbody>';
+
+    var rows, i;
+    if (mode === 'class') {
+      rows = [{ key: selC }];
+      for (i = 0; i < CN; i++) {
+        var ci = rows[0].key;
+        g += '<tr><th class="rowhead"><b>' + esc(CLASSES[ci].n) + '</b><small>' + esc(CLASSES[ci].r) +
+             '</small></th>';
+        for (var s = 0; s < S; s++) g += cellHtml(lessonAt(ci, s), ci, true);
+        g += '</tr>';
+        break; /* lớp chế độ chỉ một hàng */
+      }
+    } else {
+      for (var t = 0; t < TN; t++) {
+        g += '<tr><th class="rowhead"><b>' + esc(TEACHERS[t].short) + '</b><small>' +
+             esc(SHORT[TEACHERS[t].subj]) + '</small></th>';
+        for (var s2 = 0; s2 < S; s2++) {
+          var li = teachAt[t * S + s2];
+          var lsn = li >= 0 ? LESSONS[li] : null;
+          g += cellHtml(lsn, lsn ? lsn.c : -1, false);
+        }
+        g += '</tr>';
+      }
+    }
+    g += '</tbody>';
+    $('grid').innerHTML = g;
+
+    /* legend */
+    var lg = '';
+    for (var si = 0; si < SUBJ.length; si++)
+      lg += '<span><i style="background:' + SUBJ[si][1] + ';border-left-color:' + SUBJ[si][2] + '"></i>' +
+            esc(SHORT[si]) + '</span>';
+    lg += '<span><i style="background:#EDF0F5;border-left-color:#8A93A3"></i>Chào cờ</span>';
+    $('legend').innerHTML = lg;
+
+    /* info line + tiêu đề bản in */
+    if (mode === 'class') {
+      var gv = TEACHERS[selC];
+      $('infoLine').innerHTML = '<b>' + esc(CLASSES[selC].n) + '</b> · 26 tiết/tuần · GVCN: ' +
+        esc(gv.short) + ' (' + esc(SHORT[gv.subj]) + ') · Phòng cố định ' + esc(CLASSES[selC].r);
+      $('phTitle').textContent = 'THỜI KHÓA BIỂU LỚP ' + CLASSES[selC].n.toUpperCase();
+    } else {
+      var tv = TEACHERS[selT];
+      var load = 0;
+      for (var q = 0; q < S; q++) if (teachAt[selT * S + q] >= 0) load++;
+      $('infoLine').innerHTML = '<b>' + esc(tv.name) + '</b> · ' + esc(SUBJ[tv.subj][0]) +
+        ' · ' + load + ' tiết/tuần';
+      $('phTitle').textContent = 'THỜI KHÓA BIỂU GIÁO VIÊN ' + tv.name.toUpperCase();
+    }
+
+    renderList(dates, today);
+  }
+
+  function renderList(dates, today) {
+    var host = $('daylist');
+    var html = '';
+    var order = [];
+    for (var d = 0; d < D; d++) order.push(d);
+    if (today >= 0) {
+      order.sort(function (a, b) {
+        if (a === today) return -1;
+        if (b === today) return 1;
+        return a - b;
+      });
+    }
+    order.forEach(function (d) {
+      var isToday = d === today;
+      html += '<section class="dayblock"><h3>' + DAYNAMES[d] +
+        ' <small class="mono">' + fmtDate(dates[d]) + '</small>' +
+        (isToday ? '<span class="pill-today">Hôm nay</span>' : '') + '</h3>';
+      for (var p = 0; p < P; p++) {
+        var s = d * P + p;
+        var lsn = mode === 'class' ? lessonAt(selC, s)
+                                   : (function () { var li = teachAt[selT * S + s]; return li >= 0 ? LESSONS[li] : null; })();
+        var tm = TIMES[p];
+        if (!lsn) {
+          html += '<div class="drow"><span class="tm">' + tm[0] + '<br>' + tm[1] + '</span>' +
+                  '<span class="dot" style="background:var(--line-hair)"></span>' +
+                  '<span class="bd" style="color:var(--text-muted)">—</span></div>';
+          continue;
+        }
+        var sj = subjOf(lsn.s);
+        var room = roomOf(lsn.s, lsn.c);
+        var main = mode === 'class'
+          ? '<b>' + esc(sj === -1 ? 'Chào cờ' : SHORT[lsn.s]) + '</b><span>' +
+            esc(TEACHERS[lsn.t].short) + ' · ' + esc(room) + '</span>'
+          : '<b>' + esc(sj === -1 ? 'Chào cờ' : SHORT[lsn.s]) + ' — ' + esc(CLASSES[lsn.c].n) + '</b><span>' + esc(room) + '</span>';
+        html += '<div class="drow"><span class="tm mono">' + tm[0] + '<br>' + tm[1] + '</span>' +
+                '<span class="dot" style="background:' + sj[2] + '"></span>' +
+                '<span class="bd">' + main + '</span></div>';
+      }
+      html += '</section>';
+    });
+    host.innerHTML = html;
+  }
+
+  /* =========================================================================
+     Xuất .ics cho lựa chọn hiện tại
+     ========================================================================= */
+  function stripDiacritics(str) {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function icsEscape(x) { return String(x).replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;'); }
+  function fold(line) {
+    if (line.length <= 73) return line;
+    var parts = [], rest = line;
+    parts.push(rest.slice(0, 73)); rest = rest.slice(73);
+    while (rest.length) { parts.push(' ' + rest.slice(0, 72)); rest = rest.slice(72); }
+    return parts.join('\r\n');
+  }
+
+  function buildIcs() {
+    var byday = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+    var items = [];
+    if (mode === 'class') {
+      for (var s = 0; s < S; s++) { var l = lessonAt(selC, s); if (l) items.push({ l: l, s: s }); }
+    } else {
+      for (var s2 = 0; s2 < S; s2++) {
+        var li = teachAt[selT * S + s2];
+        if (li >= 0) items.push({ l: LESSONS[li], s: s2 });
+      }
+    }
+    var calName = mode === 'class'
+      ? 'TKB ' + CLASSES[selC].n + ' - HK I 2026-2027'
+      : 'TKB - ' + TEACHERS[selT].name + ' - HK I 2026-2027';
+
+    var out = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0',
+      'PRODID:-//TKB Vietnam//Timetable 1.0//VI', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+      'X-WR-CALNAME:' + icsEscape(calName), 'X-WR-TIMEZONE:Asia/Ho_Chi_Minh',
+      'REFRESH-INTERVAL;VALUE=DURATION:PT6H', 'X-PUBLISHED-TTL:PT6H',
+      'BEGIN:VTIMEZONE', 'TZID:Asia/Ho_Chi_Minh', 'BEGIN:STANDARD',
+      'DTSTART:19700101T000000', 'TZOFFSETFROM:+0700', 'TZOFFSETTO:+0700', 'TZNAME:+07',
+      'END:STANDARD', 'END:VTIMEZONE'
+    ];
+
+    var firstOcc = [];
+    for (var d = 0; d < D; d++) {
+      var dt = new Date(SEM_START);
+      dt.setDate(SEM_START.getDate() + d);
+      firstOcc.push(dt);
+    }
+
+    items.forEach(function (it, k) {
+      var l = it.l, day = (it.s / P) | 0, pos = it.s % P;
+      var tm = TIMES[pos];
+      var sh = tm[0].replace(':', ''), eh = tm[1].replace(':', '');
+      var occ = firstOcc[day];
+      var ymd = occ.getFullYear() + pad(occ.getMonth() + 1) + pad(occ.getDate());
+      var sj = subjOf(l.s);
+      var summary = mode === 'class'
+        ? SHORT[l.s] + ' - ' + CLASSES[l.c].n
+        : (l.s === -1 ? 'Chào cờ - ' + CLASSES[l.c].n : SHORT[l.s] + ' - ' + CLASSES[l.c].n);
+      if (mode === 'teacher' && l.s !== -1) summary = '[Dạy] ' + summary;
+      var room = roomOf(l.s, l.c);
+      var uid = 'tkb-' + (mode === 'class' ? 'c' + selC : 't' + selT) + '-' + it.s + '@demo.tkb.vn';
+
+      out.push('BEGIN:VEVENT');
+      out.push('UID:' + uid);
+      out.push('DTSTAMP:20260824T000000Z');
+      out.push('DTSTART;TZID=Asia/Ho_Chi_Minh:' + ymd + 'T' + sh + '00');
+      out.push('DTEND;TZID=Asia/Ho_Chi_Minh:' + ymd + 'T' + eh + '00');
+      out.push('RRULE:FREQ=WEEKLY;BYDAY=' + byday[day] + ';UNTIL=20270115T235959Z');
+      /* Nghỉ lễ 01/01/2027 (Thứ Sáu) */
+      if (byday[day] === 'FR')
+        out.push('EXDATE;TZID=Asia/Ho_Chi_Minh:20270101T' + sh + '00');
+      out.push('SUMMARY:' + icsEscape(summary));
+      out.push('LOCATION:' + icsEscape(room));
+      out.push(fold('DESCRIPTION:' + icsEscape(
+        'Tiết ' + (pos + 1) + ' · ' + CLASSES[l.c].n + ' · ' + (l.s === -1 ? 'Chào cờ' : SUBJ[l.s][0]) +
+        '\nGiáo viên: ' + TEACHERS[l.t].name)));
+      out.push('BEGIN:VALARM', 'TRIGGER:-PT10M', 'ACTION:DISPLAY',
+               'DESCRIPTION:' + icsEscape(summary + ' - ' + room), 'END:VALARM');
+      out.push('END:VEVENT');
+    });
+    out.push('END:VCALENDAR');
+    return out.join('\r\n');
+  }
+
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(function () { t.classList.remove('show'); }, 3200);
+  }
+
+  /* =========================================================================
+     Điều khiển
+     ========================================================================= */
+  function populateSelects() {
+    var sc = $('selClass'), st = $('selTeacher'), o;
+    sc.innerHTML = '';
+    CLASSES.forEach(function (c, i) {
+      o = document.createElement('option');
+      o.value = i; o.textContent = c.n + ' — ' + c.r;
+      sc.appendChild(o);
+    });
+    st.innerHTML = '';
+    var order = TEACHERS.map(function (t, i) { return i; })
+      .sort(function (a, b) {
+        return TEACHERS[a].subj - TEACHERS[b].subj ||
+               TEACHERS[a].short.localeCompare(TEACHERS[b].short, 'vi');
+      });
+    order.forEach(function (ti) {
+      o = document.createElement('option');
+      o.value = ti;
+      o.textContent = TEACHERS[ti].short + ' — ' + SHORT[TEACHERS[ti].subj];
+      st.appendChild(o);
+    });
+  }
+
+  function setMode(m) {
+    mode = m;
+    $('tabClass').classList.toggle('on', m === 'class');
+    $('tabTeacher').classList.toggle('on', m === 'teacher');
+    $('selClass').hidden = m !== 'class';
+    $('selTeacher').hidden = m !== 'teacher';
+    render();
+  }
+
+  $('tabClass').addEventListener('click', function () { setMode('class'); });
+  $('tabTeacher').addEventListener('click', function () { setMode('teacher'); });
+  $('selClass').addEventListener('change', function () { selC = +this.value; render(); });
+  $('selTeacher').addEventListener('change', function () { selT = +this.value; render(); });
+
+  $('btnIcs').addEventListener('click', function () {
+    var blob = new Blob([buildIcs()], { type: 'text/calendar;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var today = new Date();
+    var stamp = today.getFullYear() + pad(today.getMonth() + 1) + pad(today.getDate());
+    var label = mode === 'class' ? 'TKB_Lop-' + CLASSES[selC].n
+                                 : 'TKB_GV-' + stripDiacritics(TEACHERS[selT].name).replace(/\s+/g, '-');
+    a.href = url;
+    a.download = label + '_HK1_2026-2027_' + stamp + '.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Đã tải lịch .ics — mở bằng ứng dụng Lịch trên điện thoại hoặc máy tính.');
+  });
+
+  populateSelects();
+  setMode('class');
+})();
+</script>
+</body>
+</html>

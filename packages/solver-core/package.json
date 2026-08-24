@@ -1,0 +1,19 @@
+{
+  "name": "@tkb/solver-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pha A (greedy+ejection) và Pha B (SA + Kempe chain) — solver spec §5–§7",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test src/golden.test.ts"
+  },
+  "dependencies": {
+    "@tkb/cost-core": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}

@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tkb
+          POSTGRES_PASSWORD: tkb_dev_only
+          POSTGRES_DB: tkb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tkb"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Golden tests của 4 package core — cổng chất lượng chính.
+      # TODO: solver score gate — chặn merge nếu điểm mềm tệ >10% trên fixture.
+      - name: Golden tests (cost-core, solver-core, import-core, rollover-core, worker, api-logic)
+        run: npm run test:all
+
+      - name: Typecheck api
+        run: npx tsc --noEmit -p apps/api
+
+      - name: Typecheck web
+        run: npx tsc --noEmit -p apps/web
+
+      - name: Typecheck worker
+        run: npx tsc --noEmit -p apps/worker
+
+      - name: Build web
+        run: cd apps/web && npx vite build
+
+      # ===== E2E smoke với Postgres thật =====
+      - name: Migrate DB
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: postgres://tkb:tkb_dev_only@localhost:5432/tkb
+
+      - name: Seed trường mẫu + TKB solver
+        run: npx tsx apps/api/scripts/seed.mjs
+        env:
+          DATABASE_URL: postgres://tkb:tkb_dev_only@localhost:5432/tkb
+
+      - name: Boot API + E2E smoke
+        working-directory: apps/api
+        run: |
+          npx tsx src/main.ts &
+          sleep 8
+          cd ../.. && node e2e/smoke.mjs
+        env:
+          DATABASE_URL: postgres://tkb:tkb_dev_only@localhost:5432/tkb
+          JWT_SECRET: ci-jwt-secret
+          PORT: 4000
+          E2E_BASE_URL: http://localhost:4000

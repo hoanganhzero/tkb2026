@@ -1,0 +1,19 @@
+{
+  "name": "tkb",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:migrate": "node apps/api/scripts/migrate.mjs",
+    "dev:api": "npm run dev -w @tkb/api",
+    "dev:web": "npm run dev -w @tkb/web",
+    "test:cost": "npm run test -w @tkb/cost-core",
+    "test:all": "node --test packages/cost-core/src/golden.test.ts packages/solver-core/src/golden.test.ts packages/import-core/src/golden.test.ts packages/rollover-core/src/golden.test.ts apps/worker/src/golden.test.ts apps/worker/src/persist.test.ts apps/api/src/ws/events.test.ts apps/api/src/modules/locks/locks.logic.test.ts apps/api/src/modules/export/xlsx.test.ts apps/api/src/modules/export/ics.test.ts apps/api/src/modules/catalog/catalog.schema.test.ts apps/api/src/modules/assignments/matrix.test.ts apps/api/src/modules/availability/availability.logic.test.ts apps/api/src/modules/snapshots/snapshots.logic.test.ts apps/api/src/modules/publish/publish.logic.test.ts apps/api/src/modules/imports/imports.mapper.test.ts"
+  }
+}

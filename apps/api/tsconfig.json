@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tkb/cost-core": ["../../packages/cost-core/src/index.ts"],
+      "@tkb/import-core": ["../../packages/import-core/src/index.ts"],
+      "@tkb/solver-core": ["../../packages/solver-core/src/index.ts"],
+      "@tkb/rollover-core": ["../../packages/rollover-core/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"]
+}

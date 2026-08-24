@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đăng nhập — TKB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-app:#F2F4F7;--bg-surface:#FFFFFF;--bg-sunken:#E7EAF0;
+  --line-hair:#E3E7EE;--line-solid:#C9D0DB;
+  --text-primary:#131A24;--text-secondary:#5B6472;--text-muted:#8A93A3;
+  --brand-900:#0F2A5C;--brand-700:#1B4A9C;--brand-600:#2563C7;--brand-100:#DCE8FB;
+  --ok-bg:#D8F3E3;--ok-line:#2F9E68;
+  --font-ui:'Be Vietnam Pro',system-ui,sans-serif;--font-data:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-ui);color:var(--text-primary);background:var(--bg-app);
+  font-size:15px;-webkit-font-smoothing:antialiased}
+.auth{display:flex;min-height:100vh}
+
+/* ---------- Cột thương hiệu ---------- */
+.aside{flex:0 0 44%;background:linear-gradient(160deg,var(--brand-900) 0%,#123263 100%);
+  color:#fff;padding:52px 48px;display:flex;flex-direction:column}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:#fff}
+.mark{width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.16);position:relative;flex:0 0 24px}
+.mark i{position:absolute;background:#fff}
+.mark i:nth-child(1){left:5px;top:5px;width:6px;height:6px;border-radius:1px}
+.mark i:nth-child(2){left:13px;top:5px;width:6px;height:6px;border-radius:1px;background:#7FD4A8}
+.mark i:nth-child(3){left:5px;top:13px;width:6px;height:6px;border-radius:1px}
+.mark i:nth-child(4){left:13px;top:13px;width:6px;height:6px;border-radius:1px;background:#FBD97A}
+.aside h2{font-size:27px;line-height:1.28;font-weight:800;margin-top:auto;letter-spacing:-.01em}
+.aside .lede{margin-top:14px;color:rgba(255,255,255,.72);font-size:14.5px;line-height:1.65}
+.points{list-style:none;margin-top:30px;display:flex;flex-direction:column;gap:14px}
+.points li{display:flex;gap:12px;font-size:14px;color:rgba(255,255,255,.88);line-height:1.55}
+.points li::before{content:'';flex:0 0 20px;height:11px;margin-top:5px;border-left:2.5px solid #7FD4A8;
+  border-bottom:2.5px solid #7FD4A8;transform:rotate(-45deg)}
+.aside .stats{margin-top:auto;padding-top:36px;display:flex;gap:26px;flex-wrap:wrap}
+.aside .stat b{font-family:var(--font-data);font-size:21px;font-weight:600;display:block}
+.aside .stat span{font-size:12px;color:rgba(255,255,255,.62)}
+
+/* ---------- Cột biểu mẫu ---------- */
+.panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 22px}
+.card{width:100%;max-width:420px}
+.tabs{display:flex;border-bottom:1px solid var(--line-solid);margin-bottom:26px}
+.tabs a{flex:1;text-align:center;padding:12px 4px;font-size:15px;font-weight:600;
+  color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs a.on{color:var(--brand-600);border-bottom-color:var(--brand-600)}
+h1{font-size:21px;font-weight:800;margin-bottom:6px}
+.hint{font-size:13.5px;color:var(--text-secondary);margin-bottom:22px}
+form{display:flex;flex-direction:column;gap:15px}
+label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
+input[type=text],input[type=email],input[type=password],input[type=tel],select{
+  width:100%;font-family:inherit;font-size:14.5px;color:var(--text-primary);
+  padding:10px 12px;border:1px solid var(--line-solid);border-radius:6px;background:var(--bg-surface)}
+input:focus,select:focus{outline:2px solid var(--brand-600);outline-offset:-1px;border-color:transparent}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.check{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--text-secondary);line-height:1.5}
+.check input{margin-top:3px;accent-color:var(--brand-600)}
+.check a{color:var(--brand-600);font-weight:600;text-decoration:none}
+.btn-pri{background:var(--brand-600);color:#fff;border:none;border-radius:6px;padding:12px 18px;
+  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-pri:hover{background:var(--brand-700)}
+.btn-pri[disabled]{opacity:.55;cursor:default}
+.note{border-radius:7px;padding:11px 14px;font-size:13.5px;line-height:1.5;display:none}
+.note.ok{display:block;background:var(--ok-bg);color:#1B6B45}
+.note.err{display:block;background:#FBDDDD;color:#96302F}
+.forgot{text-align:right;margin-top:-4px}
+.forgot a{font-size:13px;color:var(--brand-600);font-weight:600;text-decoration:none}
+.legal{text-align:center;font-size:12.5px;color:var(--text-muted);margin-top:22px;line-height:1.6}
+.legal a{color:var(--text-secondary)}
+.foot{margin-top:34px;font-size:12.5px;color:var(--text-muted);text-align:center}
+.foot a{color:var(--brand-600);font-weight:600;text-decoration:none}
+
+@media(max-width:939px){
+  .aside{display:none}
+  .panel{padding:32px 20px}
+  .row2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="auth">
+
+  <aside class="aside">
+    <span class="logo"><span class="mark"><i></i><i></i><i></i><i></i></span>TKB</span>
+    <h2>Mùa xếp thời khoá biểu<br>không còn là mùa bận nhất năm</h2>
+    <p class="lede">Nhập danh sách từ Excel, phân công trên ma trận quen thuộc,
+      bấm một nút — thời khoá biểu cả trường hoàn chỉnh, không trùng một ô nào.</p>
+    <ul class="points">
+      <li>Nhập file Excel sẵn có của trường — hệ thống tự nhận dạng, gợi ý sửa lỗi tại chỗ.</li>
+      <li>Kéo-thả đổi tiết với đèn giao thông: chặn xung đột trước khi xảy ra, không phải sau.</li>
+      <li>Xuất Excel, PDF đúng thể thức văn bản, lịch .ics cho từng giáo viên bất cứ lúc nào.</li>
+    </ul>
+    <div class="stats">
+      <div class="stat"><b>&lt; 1 phút</b><span>xếp TKB 45 lớp</span></div>
+      <div class="stat"><b>&lt; 90 phút</b><span>từ đăng ký đến TKB đầu tiên</span></div>
+      <div class="stat"><b>0đ</b><span>dùng thử đến 10 lớp</span></div>
+    </div>
+  </aside>
+
+  <main class="panel">
+    <div class="card">
+      <nav class="tabs" aria-label="Đăng nhập hoặc đăng ký">
+        <a href="#dang-nhap" id="tabLogin">Đăng nhập</a>
+        <a href="#dang-ky" id="tabRegister">Đăng ký trường mới</a>
+      </nav>
+
+      <!-- ============ Đăng nhập ============ -->
+      <section id="paneLogin">
+        <h1>Chào mừng trở lại</h1>
+        <p class="hint">Đăng nhập để tiếp tục xếp thời khoá biểu cho trường của bạn.</p>
+        <form id="formLogin" novalidate>
+          <div>
+            <label for="liId">Email hoặc số điện thoại</label>
+            <input type="text" id="liId" autocomplete="username" required
+                   placeholder="vidu@truong.edu.vn hoặc 09xx xxx xxx">
+          </div>
+          <div>
+            <label for="liPw">Mật khẩu</label>
+            <input type="password" id="liPw" autocomplete="current-password" required minlength="8"
+                   placeholder="Ít nhất 8 ký tự">
+          </div>
+          <div class="forgot"><a href="#">Quên mật khẩu?</a></div>
+          <button class="btn-pri" type="submit" id="btnLogin">Đăng nhập</button>
+          <p class="note" id="noteLogin"></p>
+        </form>
+      </section>
+
+      <!-- ============ Đăng ký ============ -->
+      <section id="paneRegister" hidden>
+        <h1>Tạo tài khoản cho trường</h1>
+        <p class="hint">Miễn phí đến 10 lớp, không cần thẻ. Bạn sẽ được dẫn từng bước nhập dữ liệu.</p>
+        <form id="formRegister" novalidate>
+          <div>
+            <label for="rgName">Họ và tên của bạn</label>
+            <input type="text" id="rgName" autocomplete="name" required placeholder="Nguyễn Văn An">
+          </div>
+          <div class="row2">
+            <div>
+              <label for="rgEmail">Email</label>
+              <input type="email" id="rgEmail" autocomplete="email" required placeholder="an@truong.edu.vn">
+            </div>
+            <div>
+              <label for="rgPhone">Số điện thoại (Zalo)</label>
+              <input type="tel" id="rgPhone" autocomplete="tel" required pattern="0\d{9,10}"
+                     placeholder="0912345678">
+            </div>
+          </div>
+          <div>
+            <label for="rgSchool">Tên trường</label>
+            <input type="text" id="rgSchool" required placeholder="THPT Nguyễn Đình Chiểu">
+          </div>
+          <div>
+            <label for="rgLevel">Cấp học</label>
+            <select id="rgLevel" required>
+              <option value="">— Chọn cấp học —</option>
+              <option>Tiểu học</option>
+              <option selected>THCS</option>
+              <option>THPT</option>
+            </select>
+          </div>
+          <label class="check">
+            <input type="checkbox" id="rgAgree" required>
+            <span>Tôi đồng ý với <a href="#">Điều khoản sử dụng</a> và xác nhận đã đọc
+              <a href="#">thông báo xử lý dữ liệu cá nhân</a>. Dữ liệu giáo viên do nhà trường
+              kiểm soát; hệ thống chỉ xử lý theo chỉ định của trường.</span>
+          </label>
+          <button class="btn-pri" type="submit" id="btnRegister">Tạo tài khoản miễn phí</button>
+          <p class="note" id="noteRegister"></p>
+        </form>
+        <p class="legal">Máy chủ đặt tại Việt Nam · Tuân thủ Nghị định 13/2023/NĐ-CP<br>
+          Không tự động trừ phí — nâng cấp khi bạn quyết định.</p>
+      </section>
+
+      <p class="foot"><a href="tkb_landing.html">Về trang chủ</a> ·
+        Xem thử <a href="tkb_cong_khai.html">trang thời khoá biểu công khai</a></p>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  function show(which) {
+    var login = which !== 'register';
+    document.getElementById('paneLogin').hidden = !login;
+    document.getElementById('paneRegister').hidden = login;
+    document.getElementById('tabLogin').classList.toggle('on', login);
+    document.getElementById('tabRegister').classList.toggle('on', !login);
+  }
+  function fromHash() {
+    show(location.hash === '#dang-ky' ? 'register' : 'login');
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+
+  function wire(formId, btnId, noteId, okMsg) {
+    var form = document.getElementById(formId),
+        btn = document.getElementById(btnId),
+        note = document.getElementById(noteId);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      note.className = 'note';
+      note.textContent = '';
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      btn.disabled = true;
+      var original = btn.textContent;
+      btn.textContent = 'Đang xử lý…';
+      setTimeout(function () {
+        btn.disabled = false;
+        btn.textContent = original;
+        /* Bản trình diễn: chưa gọi máy chủ thật */
+        note.className = 'note ok';
+        note.textContent = okMsg;
+      }, 550);
+    });
+  }
+
+  wire('formLogin', 'btnLogin', 'noteLogin',
+       'Bản trình diễn giao diện — chưa kết nối máy chủ. Trong sản phẩm thật, bước này mở thẳng vào lưới xếp thời khoá biểu.');
+  wire('formRegister', 'btnRegister', 'noteRegister',
+       'Bản trình diễn giao diện — chưa kết nối máy chủ. Trong sản phẩm thật, bước tiếp theo là tải file mẫu và nhập danh sách từ Excel (~45 phút).');
+})();
+</script>
+</body>
+</html>

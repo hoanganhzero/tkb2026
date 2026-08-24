@@ -1,0 +1,10 @@
+{
+  "name": "@tkb/rollover-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Logic ánh xạ lớp + phân công qua ranh giới năm học (rollover doc §4–§6)",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "test": "node --test src/golden.test.ts" },
+  "devDependencies": { "@types/node": "^24.0.0" }
+}

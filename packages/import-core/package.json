@@ -1,0 +1,16 @@
+{
+  "name": "@tkb/import-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Chuẩn hoá + ánh xạ cột + luật kiểm tra cho nhập Excel — dùng chung trình duyệt & server (excel_import §5.1)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test src/golden.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}

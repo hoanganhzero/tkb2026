@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TKB — Prototype lưới xếp thời khóa biểu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-app:#F2F4F7; --bg-surface:#FFFFFF; --bg-sunken:#E7EAF0; --bg-hover:#EDF0F5;
+  --line-hair:#E3E7EE; --line-solid:#C9D0DB; --line-strong:#8A93A3;
+  --text-primary:#131A24; --text-secondary:#5B6472; --text-muted:#8A93A3;
+  --brand-900:#0F2A5C; --brand-700:#1B4A9C; --brand-600:#2563C7; --brand-100:#DCE8FB;
+  --ok-bg:#D8F3E3; --ok-line:#2F9E68;
+  --warn-bg:#FDF0CE; --warn-line:#C08A12;
+  --block-bg:#FBDDDD; --block-line:#C43D3D;
+  --pin-line:#6B47C9;
+  --cell-w:92px; --cell-h:46px; --row-head-w:96px; --col-head-h:48px;
+  --font-ui:'Be Vietnam Pro',system-ui,-apple-system,sans-serif;
+  --font-data:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font-ui);font-size:14px;color:var(--text-primary);
+  background:var(--bg-app);overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;font-size:13px;cursor:pointer;border:none;background:none;color:inherit}
+.mono{font-family:var(--font-data);font-variant-numeric:tabular-nums}
+
+/* ---------- Khung ---------- */
+.app{display:flex;flex-direction:column;height:100vh}
+.topbar{
+  height:50px;flex:0 0 50px;background:var(--brand-900);color:#fff;
+  display:flex;align-items:center;gap:14px;padding:0 16px;
+}
+.logo{font-weight:800;letter-spacing:.06em;font-size:15px}
+.ctx{
+  display:flex;align-items:center;gap:8px;font-size:13px;
+  color:rgba(255,255,255,.82);
+}
+.ctx b{color:#fff;font-weight:600}
+.ctx .sep{opacity:.35}
+.topbar .spacer{flex:1}
+.badge-demo{
+  font-size:11px;font-weight:600;background:rgba(255,255,255,.14);
+  padding:4px 9px;border-radius:99px;letter-spacing:.02em;
+}
+
+.toolbar{
+  height:46px;flex:0 0 46px;background:var(--bg-surface);
+  border-bottom:1px solid var(--line-solid);
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+}
+.group{display:flex;align-items:center;gap:1px;background:var(--bg-sunken);border-radius:6px;padding:2px}
+.group button{
+  padding:5px 11px;border-radius:4px;font-weight:500;color:var(--text-secondary);
+  transition:background .12s,color .12s;
+}
+.group button.on{background:var(--bg-surface);color:var(--text-primary);font-weight:600;
+  box-shadow:0 1px 2px rgba(19,26,36,.10)}
+.group button:hover:not(.on){color:var(--text-primary)}
+.tlabel{font-size:12px;font-weight:600;color:var(--text-muted);margin-right:-4px}
+.btn{
+  padding:7px 13px;border-radius:5px;font-weight:500;border:1px solid var(--line-solid);
+  background:var(--bg-surface);transition:background .12s,border-color .12s;
+}
+.btn:hover{background:var(--bg-hover)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--brand-600);border-color:var(--brand-600);color:#fff;font-weight:600}
+.btn.primary:hover{background:var(--brand-700)}
+.btn.danger{color:var(--block-line);border-color:#E8C4C4}
+.toolbar .spacer{flex:1}
+
+.main{flex:1;display:flex;min-height:0}
+
+/* ---------- Lưới ---------- */
+.gridwrap{flex:1;overflow:auto;background:var(--bg-surface);position:relative}
+table.grid{border-collapse:separate;border-spacing:0}
+.grid th,.grid td{padding:0;margin:0}
+.grid thead th{
+  position:sticky;top:0;z-index:3;background:var(--bg-surface);
+  height:var(--col-head-h);border-bottom:1px solid var(--line-solid);
+  font-size:11px;font-weight:600;color:var(--text-secondary);
+}
+.grid thead th.corner{left:0;z-index:5;border-right:1px solid var(--line-solid);width:var(--row-head-w)}
+.grid thead tr.days th{border-bottom:1px solid var(--line-hair);height:24px;
+  font-size:12px;font-weight:700;color:var(--text-primary)}
+.grid thead tr.pers th{height:24px;top:24px;font-family:var(--font-data);font-weight:500;
+  font-size:11px;color:var(--text-muted)}
+.grid thead tr.days th.corner{top:0;height:24px}
+.grid thead tr.pers th.corner{top:24px;height:24px}
+.rowhead{
+  position:sticky;left:0;z-index:2;background:var(--bg-surface);
+  width:var(--row-head-w);min-width:var(--row-head-w);
+  border-right:1px solid var(--line-solid);border-bottom:1px solid var(--line-hair);
+  padding:0 9px;text-align:left;font-weight:600;font-size:12.5px;
+}
+.rowhead small{display:block;font-weight:400;font-size:10.5px;color:var(--text-muted);
+  font-family:var(--font-data);margin-top:1px}
+td.cell{
+  width:var(--cell-w);min-width:var(--cell-w);height:var(--cell-h);
+  border-right:1px solid var(--line-hair);border-bottom:1px solid var(--line-hair);
+  background:var(--bg-sunken);position:relative;vertical-align:top;
+}
+td.cell.dayend{border-right:2px solid var(--line-strong)}
+td.cell.off{
+  background:repeating-linear-gradient(45deg,#DDE2EA 0 4px,#E7EAF0 4px 8px);
+}
+.lesson{
+  position:absolute;inset:1px;border-radius:3px;padding:3px 5px 2px 7px;
+  overflow:hidden;cursor:grab;user-select:none;line-height:1.15;
+}
+.lesson::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.lesson .s{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lesson .t{font-size:10.5px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lesson:hover{filter:brightness(.965)}
+.lesson.pinned::after{
+  content:'';position:absolute;right:3px;top:3px;width:6px;height:6px;border-radius:50%;
+  background:var(--pin-line);
+}
+.lesson.pinned::before{background:var(--pin-line)!important}
+.lesson.ghosted{opacity:.28}
+.lesson.flash{animation:flash .28s ease-out}
+@keyframes flash{from{background:#fff}to{}}
+
+/* Đèn giao thông */
+.dragging td.cell.tl-ok{background:var(--ok-bg);box-shadow:inset 0 0 0 1px rgba(47,158,104,.35)}
+.dragging td.cell.tl-warn{background:var(--warn-bg);box-shadow:inset 0 0 0 1px rgba(192,138,18,.4)}
+.dragging td.cell.tl-block{background:var(--block-bg);cursor:not-allowed}
+.dragging td.cell.tl-block .lesson{opacity:.32}
+.dragging td.cell.tl-ok .lesson,.dragging td.cell.tl-warn .lesson{opacity:.55}
+.dragging td.cell.hot{box-shadow:inset 0 0 0 2px var(--brand-600)}
+.dragging .lesson{cursor:grabbing}
+.tlmark{
+  position:absolute;right:2px;bottom:1px;font-size:9px;font-weight:700;
+  font-family:var(--font-data);pointer-events:none;
+}
+.tl-ok .tlmark{color:var(--ok-line)} .tl-warn .tlmark{color:var(--warn-line)}
+.tl-block .tlmark{color:var(--block-line)}
+td.cell.shake{animation:shake .18s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+
+/* ---------- Panel phải ---------- */
+.panel{
+  width:272px;flex:0 0 272px;background:var(--bg-surface);
+  border-left:1px solid var(--line-solid);display:flex;flex-direction:column;
+}
+.phead{padding:11px 13px 9px;border-bottom:1px solid var(--line-hair)}
+.phead h2{font-size:13px;font-weight:700}
+.phead p{font-size:11.5px;color:var(--text-muted);margin-top:2px}
+.plist{flex:1;overflow-y:auto;padding:8px 10px 20px}
+.pgroup{margin-bottom:10px}
+.pgroup h3{
+  font-size:11px;font-weight:600;color:var(--text-muted);
+  padding:4px 2px;display:flex;justify-content:space-between;
+}
+.card{
+  border-radius:4px;padding:5px 7px 5px 9px;margin-bottom:4px;position:relative;
+  cursor:grab;user-select:none;line-height:1.2;
+}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.card .s{font-size:11.5px;font-weight:600;display:flex;justify-content:space-between;gap:6px}
+.card .t{font-size:10.5px;color:var(--text-secondary)}
+.card .n{font-family:var(--font-data);font-size:10.5px;font-weight:600;opacity:.7}
+.card:hover{filter:brightness(.965)}
+.card.hard{box-shadow:inset 0 0 0 1px var(--warn-line)}
+.empty{text-align:center;padding:36px 16px;color:var(--text-muted);font-size:12.5px;line-height:1.5}
+.empty b{display:block;color:var(--text-primary);font-size:13px;margin-bottom:4px;font-weight:600}
+
+/* ---------- Thanh trạng thái ---------- */
+.status{
+  height:32px;flex:0 0 32px;background:var(--bg-surface);
+  border-top:1px solid var(--line-solid);display:flex;align-items:center;
+  gap:16px;padding:0 14px;font-size:12px;color:var(--text-secondary);
+}
+.status b{color:var(--text-primary);font-family:var(--font-data);font-weight:600}
+.status .dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:5px}
+.status .spacer{flex:1}
+.bar{width:130px;height:5px;background:var(--bg-sunken);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand-600);width:0;transition:width .2s}
+
+/* ---------- Ghost & tooltip ---------- */
+#ghost{
+  position:fixed;z-index:999;pointer-events:none;border-radius:4px;padding:4px 8px 4px 9px;
+  box-shadow:0 8px 20px rgba(19,26,36,.22);transform:rotate(1deg) scale(1.02);
+  display:none;line-height:1.15;
+}
+#ghost::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+#ghost .s{font-size:11.5px;font-weight:600}
+#ghost .t{font-size:10.5px;color:var(--text-secondary)}
+#tip{
+  position:fixed;z-index:1000;pointer-events:none;display:none;max-width:280px;
+  background:#131A24;color:#fff;border-radius:6px;padding:8px 10px;
+  font-size:12px;line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.28);
+}
+#tip .h{font-weight:700;margin-bottom:3px;font-size:12px}
+#tip ul{margin:0;padding-left:14px}
+#tip li{margin-top:2px}
+#tip.ok .h{color:#8FE3B6} #tip.warn .h{color:#FBD97A} #tip.block .h{color:#FCA9A9}
+
+/* ---------- Toast ---------- */
+#toast{
+  position:fixed;right:16px;bottom:44px;z-index:900;display:flex;flex-direction:column;gap:8px;
+}
+.toast{
+  background:var(--bg-surface);border:1px solid var(--line-solid);border-radius:7px;
+  box-shadow:0 6px 18px rgba(19,26,36,.14);padding:10px 12px;max-width:330px;font-size:12.5px;
+  display:flex;gap:10px;align-items:flex-start;animation:slidein .16s ease-out;
+}
+@keyframes slidein{from{transform:translateY(8px);opacity:0}to{}}
+.toast .body{flex:1;line-height:1.4}
+.toast .body b{display:block;margin-bottom:2px;font-weight:600}
+.toast .body ul{margin:3px 0 0;padding-left:15px;color:var(--text-secondary);font-size:11.5px}
+.toast button{color:var(--brand-600);font-weight:600;white-space:nowrap}
+
+.hint{
+  position:fixed;left:50%;bottom:44px;transform:translateX(-50%);z-index:900;
+  background:#131A24;color:#fff;padding:7px 14px;border-radius:99px;font-size:12px;
+  box-shadow:0 5px 16px rgba(0,0,0,.2);
+}
+kbd{
+  font-family:var(--font-data);font-size:10.5px;background:rgba(255,255,255,.16);
+  padding:1px 5px;border-radius:3px;margin:0 1px;
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <span class="logo">TKB</span>
+    <span class="ctx">
+      <b>THPT Nguyễn Đình Chiểu</b><span class="sep">/</span>
+      <b>2026–2027</b><span class="sep">/</span>Học kỳ I
+    </span>
+    <span class="spacer"></span>
+    <span class="badge-demo">Prototype · dữ liệu mô phỏng</span>
+  </div>
+
+  <div class="toolbar">
+    <span class="tlabel">Xem theo</span>
+    <div class="group" id="viewGroup">
+      <button data-view="class" class="on">Lớp</button>
+      <button data-view="teacher">Giáo viên</button>
+    </div>
+    <div style="width:1px;height:22px;background:var(--line-solid);margin:0 4px"></div>
+    <button class="btn" id="btnUndo" disabled>↶ Hoàn tác</button>
+    <button class="btn" id="btnRedo" disabled>↷</button>
+    <span class="spacer"></span>
+    <button class="btn danger" id="btnClear">Xoá hết</button>
+    <button class="btn" id="btnGreedy">Xếp nhanh</button>
+    <button class="btn primary" id="btnAuto">⚡ Xếp tự động</button>
+  </div>
+
+  <div class="main">
+    <div class="gridwrap" id="gridwrap"></div>
+    <div class="panel">
+      <div class="phead">
+        <h2>Kho tiết chưa xếp</h2>
+        <p id="pcount">—</p>
+      </div>
+      <div class="plist" id="plist"></div>
+    </div>
+  </div>
+
+  <div class="status">
+    <span><span class="dot" id="dotHard"></span>Lỗi cứng: <b id="stHard">0</b></span>
+    <span>Đã xếp <b id="stPlaced">0/0</b></span>
+    <div class="bar"><i id="stBar"></i></div>
+    <span>Điểm phạt mềm <b id="stScore">0</b></span>
+    <span style="color:var(--text-muted)" id="stNote"></span>
+    <span class="spacer"></span>
+    <span style="color:var(--text-muted)" id="stPerf"></span>
+  </div>
+</div>
+
+<div id="ghost"></div>
+<div id="tip"></div>
+<div id="toast"></div>
+<div class="hint">Kéo thẻ từ kho bên phải vào lưới · <kbd>Alt</kbd>+click để ghim · <kbd>Ctrl</kbd>+<kbd>Z</kbd> hoàn tác</div>
+
+<script>
+/* ==========================================================================
+   1. DỮ LIỆU MÔ PHỎNG
+   ========================================================================== */
+const D = 6, P = 5, S = D * P;                  // 6 ngày × 5 tiết sáng = 30 ô
+const DAYS  = ['Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+const DAYSS = ['Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+
+const SUBJ = [
+  {code:'TOAN', short:'Toán',    name:'Toán',            bg:'#DCEAFB', ln:'#2F6FBF', diff:5, ppw:4, nT:3},
+  {code:'VAN',  short:'Văn',     name:'Ngữ văn',         bg:'#FBE0E0', ln:'#C25454', diff:4, ppw:4, nT:3},
+  {code:'ANH',  short:'Anh',     name:'Tiếng Anh',       bg:'#D6F0EF', ln:'#2E8E8A', diff:4, ppw:3, nT:2},
+  {code:'LY',   short:'Lí',      name:'Vật lí',          bg:'#FCE8D5', ln:'#C97B2E', diff:5, ppw:2, nT:2},
+  {code:'HOA',  short:'Hoá',     name:'Hoá học',         bg:'#E8E0F7', ln:'#7A5BC2', diff:5, ppw:2, nT:2},
+  {code:'SINH', short:'Sinh',    name:'Sinh học',        bg:'#DDF2DF', ln:'#4A9455', diff:3, ppw:2, nT:2},
+  {code:'SU',   short:'Sử',      name:'Lịch sử',         bg:'#F8F0CE', ln:'#B39415', diff:3, ppw:2, nT:1},
+  {code:'DIA',  short:'Địa',     name:'Địa lí',          bg:'#DFE6EC', ln:'#5C7488', diff:3, ppw:1, nT:1},
+  {code:'GDCD', short:'GDCD',    name:'Giáo dục công dân',bg:'#F7DCD2',ln:'#BC5B38', diff:2, ppw:1, nT:1},
+  {code:'TIN',  short:'Tin',     name:'Tin học',         bg:'#DDE1F5', ln:'#5461B8', diff:3, ppw:2, nT:2},
+  {code:'CN',   short:'C.nghệ',  name:'Công nghệ',       bg:'#E6EED7', ln:'#78913F', diff:2, ppw:1, nT:1},
+  {code:'TD',   short:'T.dục',   name:'Thể dục',         bg:'#EDE3D8', ln:'#8A6A4A', diff:1, ppw:2, nT:2},
+];
+// tổng 25 tiết/tuần trên 30 ô
+
+const HO = ['Nguyễn','Trần','Lê','Phạm','Hoàng','Vũ','Đặng','Bùi','Đỗ','Hồ','Ngô','Dương'];
+const DEM_M = ['Văn','Đức','Hữu','Quang','Minh','Thanh'];
+const DEM_F = ['Thị','Thu','Ngọc','Kim','Hồng','Mai'];
+const TEN = ['Hùng','Bình','Sơn','Nam','An','Dũng','Tuấn','Long','Hà','Lan','Mai','Hoa','Thảo','Trang','Yến','Linh','Nga','Vân','Chi','Hạnh','Quyên','Nhung'];
+
+let seed = 20260822;
+function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+function ri(n){ return Math.floor(rnd() * n); }
+
+// --- Lớp ---
+const CLASSES = [];
+for (const g of [10, 11, 12])
+  for (let i = 1; i <= 4; i++)
+    CLASSES.push({ name: g + 'A' + i, grade: g });
+const C = CLASSES.length;
+
+// --- Giáo viên ---
+const TEACHERS = [];
+const subjTeachers = [];
+SUBJ.forEach((s, si) => {
+  const list = [];
+  for (let k = 0; k < s.nT; k++) {
+    const female = rnd() < .55;
+    const ho = HO[ri(HO.length)];
+    const dem = female ? DEM_F[ri(DEM_F.length)] : DEM_M[ri(DEM_M.length)];
+    const ten = TEN[ri(TEN.length)];
+    list.push(TEACHERS.length);
+    TEACHERS.push({
+      name: (female ? 'C. ' : 'T. ') + ho + ' ' + dem + ' ' + ten,
+      short: (female ? 'C.' : 'T.') + ten,
+      subj: si
+    });
+  }
+  subjTeachers.push(list);
+});
+const T = TEACHERS.length;
+
+// --- Lịch bận của giáo viên ---
+const teacherOff = new Uint32Array(T);
+const bit = s => (1 << s) >>> 0;
+// 4 giáo viên nghỉ hẳn Thứ Bảy
+for (let k = 0; k < 4; k++) {
+  const t = ri(T);
+  for (let p = 0; p < P; p++) teacherOff[t] |= bit(5 * P + p);
+}
+// vài ô bận lẻ tẻ
+for (let t = 0; t < T; t++)
+  for (let s = 0; s < S; s++)
+    if (rnd() < .07) teacherOff[t] |= bit(s);
+
+// --- Phân công → sinh tiết học ---
+const LESSONS = [];   // {cls, tea, subj}
+CLASSES.forEach((c, ci) => {
+  SUBJ.forEach((s, si) => {
+    const pool = subjTeachers[si];
+    const tea = pool[ci % pool.length];
+    for (let k = 0; k < s.ppw; k++) LESSONS.push({ cls: ci, tea, subj: si });
+  });
+});
+const N = LESSONS.length;
+
+/* ==========================================================================
+   2. TRẠNG THÁI + BITMASK
+   ========================================================================== */
+const slotOf    = new Int32Array(N).fill(-1);
+const pinned    = new Uint8Array(N);
+const allowMask = new Uint32Array(N);
+const FULL      = (S === 32) ? 0xFFFFFFFF : ((1 << S) - 1) >>> 0;
+for (let i = 0; i < N; i++) allowMask[i] = (FULL & ~teacherOff[LESSONS[i].tea]) >>> 0;
+
+const classBusy   = new Uint32Array(C);
+const teacherBusy = new Uint32Array(T);
+const classAt     = new Int32Array(C * S).fill(-1);
+const teacherAt   = new Int32Array(T * S).fill(-1);
+
+const cdCost = new Int32Array(C * D);
+const tdCost = new Int32Array(T * D);
+let total = 0, placedCount = 0;
+
+const has = (m, s) => (m & bit(s)) !== 0;
+
+function canPlace(l, s) {
+  if (!has(allowMask[l], s)) return false;
+  const L = LESSONS[l];
+  if (has(classBusy[L.cls], s)) return false;
+  if (has(teacherBusy[L.tea], s)) return false;
+  return true;
+}
+
+function rawPlace(l, s) {
+  const L = LESSONS[l];
+  slotOf[l] = s;
+  classBusy[L.cls]   |= bit(s);
+  teacherBusy[L.tea] |= bit(s);
+  classAt[L.cls * S + s]   = l;
+  teacherAt[L.tea * S + s] = l;
+  placedCount++;
+}
+function rawUnplace(l) {
+  const s = slotOf[l]; if (s < 0) return;
+  const L = LESSONS[l];
+  classBusy[L.cls]   &= ~bit(s);
+  teacherBusy[L.tea] &= ~bit(s);
+  classAt[L.cls * S + s]   = -1;
+  teacherAt[L.tea * S + s] = -1;
+  slotOf[l] = -1;
+  placedCount--;
+}
+
+/* ==========================================================================
+   3. HÀM CHI PHÍ — phân rã theo đơn vị (lớp,ngày) và (giáo viên,ngày)
+   ========================================================================== */
+const W_GAP_CLASS = 30, W_SAME_SUBJ = 25, W_LATE = 4;
+const W_GAP_TEA = 20, W_DAY_TRIP = 10, W_ONE_LESSON = 15, W_OVERLOAD = 40;
+const W_UNPLACED = 500;
+
+function classDayCost(c, d) {
+  let cost = 0, first = -1, last = -1, n = 0;
+  const seen = {};
+  for (let p = 0; p < P; p++) {
+    const l = classAt[c * S + d * P + p];
+    if (l < 0) continue;
+    if (first < 0) first = p;
+    last = p; n++;
+    const sj = LESSONS[l].subj;
+    seen[sj] = (seen[sj] || 0) + 1;
+    if (SUBJ[sj].diff >= 4) cost += (SUBJ[sj].diff - 3) * W_LATE * Math.max(0, p - 2);
+  }
+  if (n > 1) cost += (last - first + 1 - n) * W_GAP_CLASS;
+  for (const k in seen) if (seen[k] > 1) cost += (seen[k] - 1) * W_SAME_SUBJ;
+  return cost;
+}
+
+function teacherDayCost(t, d) {
+  let first = -1, last = -1, n = 0;
+  for (let p = 0; p < P; p++) {
+    if (teacherAt[t * S + d * P + p] >= 0) { if (first < 0) first = p; last = p; n++; }
+  }
+  if (n === 0) return 0;
+  let cost = W_DAY_TRIP;
+  if (n === 1) cost += W_ONE_LESSON;
+  cost += (last - first + 1 - n) * W_GAP_TEA;
+  if (n > 4) cost += (n - 4) * W_OVERLOAD;
+  return cost;
+}
+
+function rebuildCost() {
+  total = 0;
+  for (let c = 0; c < C; c++) for (let d = 0; d < D; d++) { const v = classDayCost(c, d); cdCost[c * D + d] = v; total += v; }
+  for (let t = 0; t < T; t++) for (let d = 0; d < D; d++) { const v = teacherDayCost(t, d); tdCost[t * D + d] = v; total += v; }
+  total += (N - placedCount) * W_UNPLACED;
+}
+
+// Cập nhật tăng dần: chỉ tính lại các đơn vị bị chạm
+const _uc = new Int32Array(8), _ut = new Int32Array(8); let _un = 0;
+function touch(kind, i, d) {                       // kind 0=lớp 1=GV
+  for (let k = 0; k < _un; k++) if (_uc[k] === kind && _ut[k] === i * D + d) return;
+  _uc[_un] = kind; _ut[_un] = i * D + d; _un++;
+}
+function collect(l, s) {
+  if (s < 0) return;
+  const L = LESSONS[l], d = (s / P) | 0;
+  touch(0, L.cls, d); touch(1, L.tea, d);
+}
+function recalc() {
+  for (let k = 0; k < _un; k++) {
+    const kind = _uc[k], key = _ut[k], i = (key / D) | 0, d = key % D;
+    const arr = kind === 0 ? cdCost : tdCost;
+    const nv = kind === 0 ? classDayCost(i, d) : teacherDayCost(i, d);
+    total += nv - arr[key]; arr[key] = nv;
+  }
+  _un = 0;
+}
+
+/** Di chuyển tiết l tới ô s (s = -1 nghĩa là gỡ về kho). Tự cập nhật điểm. */
+function moveLesson(l, s) {
+  const from = slotOf[l];
+  if (from === s) return;
+  _un = 0; collect(l, from); collect(l, s);
+  if (from >= 0) { rawUnplace(l); total -= W_UNPLACED * -1 * 0; }
+  if (from >= 0 && s < 0) total += W_UNPLACED;
+  if (from < 0 && s >= 0) total -= W_UNPLACED;
+  if (s >= 0) rawPlace(l, s);
+  recalc();
+}
+
+/** Thử đặt và trả về chênh lệch điểm, rồi hoàn nguyên. */
+function tryDelta(l, s) {
+  const from = slotOf[l], before = total;
+  moveLesson(l, s);
+  const d = total - before;
+  moveLesson(l, from);
+  return d;
+}
+
+/* ==========================================================================
+   4. ĐÈN GIAO THÔNG — tính toàn bộ 30 ô trong một lần, ở client
+   ========================================================================== */
+function computeLights(l) {
+  const t0 = performance.now();
+  const out = new Array(S);
+  const L = LESSONS[l], from = slotOf[l];
+
+  for (let s = 0; s < S; s++) {
+    const occ = classAt[L.cls * S + s];
+
+    if (occ >= 0 && occ !== l) {                          // ô đã có tiết → thử hoán đổi
+      if (from < 0 || pinned[occ]) { out[s] = { st: 'block', why: [pinned[occ] ? 'Tiết ở ô này đã bị ghim' : 'Ô này đã có tiết khác'] }; continue; }
+      const sB = slotOf[occ];
+      rawUnplace(l); rawUnplace(occ);
+      const ok = canPlace(l, s) && canPlace(occ, from);
+      rawPlace(l, from); rawPlace(occ, sB);
+      if (!ok) { out[s] = { st: 'block', why: [swapBlockReason(l, occ)] }; continue; }
+      // delta của phép hoán đổi
+      const before = total;
+      _un = 0; collect(l, from); collect(l, s); collect(occ, sB); collect(occ, from);
+      rawUnplace(l); rawUnplace(occ); rawPlace(l, s); rawPlace(occ, from); recalc();
+      const d = total - before;
+      _un = 0; collect(l, s); collect(l, from); collect(occ, from); collect(occ, sB);
+      rawUnplace(l); rawUnplace(occ); rawPlace(l, from); rawPlace(occ, sB); recalc();
+      out[s] = { st: d <= 0 ? 'ok' : 'warn', d, swap: occ, why: d > 0 ? reasonsFor(l, s) : [] };
+      continue;
+    }
+
+    if (occ === l) { out[s] = { st: 'ok', d: 0, self: true, why: [] }; continue; }
+
+    if (!has(allowMask[l], s)) {
+      const d = (s / P) | 0, p = s % P;
+      out[s] = { st: 'block', why: [`${TEACHERS[L.tea].name} báo bận ${DAYS[d]} tiết ${p + 1}`] };
+      continue;
+    }
+    if (has(teacherBusy[L.tea], s)) {
+      const other = teacherAt[L.tea * S + s];
+      out[s] = { st: 'block', why: [`${TEACHERS[L.tea].name} đang dạy ${CLASSES[LESSONS[other].cls].name} tiết này`] };
+      continue;
+    }
+    const d = tryDelta(l, s);
+    out[s] = { st: d <= 0 ? 'ok' : 'warn', d, why: d > 0 ? reasonsFor(l, s) : [] };
+  }
+  lastLightMs = performance.now() - t0;
+  return out;
+}
+
+function swapBlockReason(a, b) {
+  const A = LESSONS[a], B = LESSONS[b], sA = slotOf[a], sB = slotOf[b];
+  if (!has(allowMask[a], sB)) return `${TEACHERS[A.tea].name} báo bận ô này`;
+  if (!has(allowMask[b], sA)) return `${TEACHERS[B.tea].name} báo bận ô nguồn`;
+  if (has(teacherBusy[A.tea] & ~bit(sA), sB)) return `${TEACHERS[A.tea].name} đã có tiết khác ở ô này`;
+  return `${TEACHERS[B.tea].name} không chuyển sang ô nguồn được`;
+}
+
+/** Sinh lời giải thích bằng tiếng Việt cho ô màu vàng. */
+function reasonsFor(l, s) {
+  const L = LESSONS[l], d = (s / P) | 0, p = s % P, out = [];
+  const cName = CLASSES[L.cls].name, tName = TEACHERS[L.tea].name;
+
+  let same = 0;
+  for (let q = 0; q < P; q++) { const x = classAt[L.cls * S + d * P + q]; if (x >= 0 && x !== l && LESSONS[x].subj === L.subj) same++; }
+  if (same > 0) out.push(`${cName} sẽ có ${same + 1} tiết ${SUBJ[L.subj].short} trong ${DAYS[d]}`);
+
+  const occ = [];
+  for (let q = 0; q < P; q++) { const x = classAt[L.cls * S + d * P + q]; if (x >= 0 && x !== l) occ.push(q); }
+  occ.push(p); occ.sort((a, b) => a - b);
+  const gaps = occ[occ.length - 1] - occ[0] + 1 - occ.length;
+  if (gaps > 0) out.push(`Tạo ${gaps} tiết trống cho ${cName} trong ${DAYS[d]}`);
+
+  let tn = 0, tday = false;
+  for (let q = 0; q < P; q++) { const x = teacherAt[L.tea * S + d * P + q]; if (x >= 0 && x !== l) { tn++; tday = true; } }
+  if (!tday) out.push(`${tName} phải đến trường thêm ${DAYS[d]}`);
+  if (tn >= 4) out.push(`${tName} sẽ dạy ${tn + 1} tiết trong ${DAYS[d]}`);
+
+  if (SUBJ[L.subj].diff >= 4 && p >= 3)
+    out.push(`${SUBJ[L.subj].name} xếp vào tiết ${p + 1} cuối buổi`);
+
+  if (!out.length) out.push('Làm giảm chất lượng chung của thời khoá biểu');
+  return out;
+}
+
+/* ==========================================================================
+   5. HOÀN TÁC
+   ========================================================================== */
+const undoStack = [], redoStack = [];
+function pushOp(changes) {
+  if (!changes.length) return;
+  undoStack.push(changes); redoStack.length = 0;
+  if (undoStack.length > 200) undoStack.shift();
+  syncUndoBtns();
+}
+function applyChanges(ch, reverse) {
+  // gỡ hết trước để tránh va chạm trung gian
+  for (const c of ch) rawUnplaceSafe(c.id);
+  for (const c of ch) { const to = reverse ? c.from : c.to; if (to >= 0) rawPlace(c.id, to); }
+  rebuildCost(); render();
+}
+function rawUnplaceSafe(id) { if (slotOf[id] >= 0) rawUnplace(id); }
+function undo() { const ch = undoStack.pop(); if (!ch) return; applyChanges(ch, true); redoStack.push(ch); syncUndoBtns(); }
+function redo() { const ch = redoStack.pop(); if (!ch) return; applyChanges(ch, false); undoStack.push(ch); syncUndoBtns(); }
+function syncUndoBtns() {
+  document.getElementById('btnUndo').disabled = !undoStack.length;
+  document.getElementById('btnRedo').disabled = !redoStack.length;
+}
+
+/* ==========================================================================
+   6. THUẬT TOÁN — Pha A (tham lam) + Pha B (luyện kim mô phỏng)
+   ========================================================================== */
+function greedyFill() {
+  const order = [];
+  for (let i = 0; i < N; i++) if (slotOf[i] < 0) order.push(i);
+  // Xếp thứ khó trước: đếm số ô khả dụng
+  order.sort((a, b) => domain(a) - domain(b));
+  for (const l of order) {
+    let best = -1, bestC = Infinity;
+    for (let s = 0; s < S; s++) {
+      if (!canPlace(l, s)) continue;
+      const d = tryDelta(l, s);
+      const jitter = rnd() * 12;
+      if (d + jitter < bestC) { bestC = d + jitter; best = s; }
+    }
+    if (best >= 0) moveLesson(l, best);
+  }
+}
+function domain(l) {
+  let n = 0;
+  for (let s = 0; s < S; s++) if (canPlace(l, s)) n++;
+  return n;
+}
+
+function randomMove() {
+  const r = rnd();
+  if (r < .40) {                                   // M1 — di chuyển đơn
+    const l = ri(N); if (pinned[l]) return null;
+    const s = ri(S); if (s === slotOf[l] || !canPlaceExcl(l, s)) return null;
+    return { k: 1, l, s };
+  } else if (r < .70) {                            // M2 — hoán đổi trong lớp
+    const a = ri(N); if (pinned[a] || slotOf[a] < 0) return null;
+    const c = LESSONS[a].cls, s2 = ri(S);
+    const b = classAt[c * S + s2];
+    if (b < 0 || b === a || pinned[b]) return null;
+    const sa = slotOf[a], sb = slotOf[b];
+    rawUnplace(a); rawUnplace(b);
+    const ok = canPlace(a, sb) && canPlace(b, sa);
+    rawPlace(a, sa); rawPlace(b, sb);
+    return ok ? { k: 2, a, b } : null;
+  } else {                                          // M3 — Kempe chain
+    const c = ri(C), s1 = ri(S), s2 = ri(S);
+    if (s1 === s2) return null;
+    const chain = buildKempe(c, s1, s2);
+    return chain ? { k: 3, chain, s1, s2 } : null;
+  }
+}
+function canPlaceExcl(l, s) {                       // như canPlace nhưng bỏ qua chính nó
+  const from = slotOf[l];
+  if (from < 0) return canPlace(l, s);
+  rawUnplace(l); const ok = canPlace(l, s); rawPlace(l, from); return ok;
+}
+
+function buildKempe(c, s1, s2) {
+  const chain = [], seen = new Set(), q = [];
+  const a = classAt[c * S + s1], b = classAt[c * S + s2];
+  if (a < 0 && b < 0) return null;
+  if (a >= 0) q.push(a); if (b >= 0) q.push(b);
+  while (q.length) {
+    if (chain.length > 8) return null;
+    const l = q.pop(); if (seen.has(l)) continue;
+    if (pinned[l]) return null;
+    seen.add(l); chain.push(l);
+    const L = LESSONS[l], from = slotOf[l], to = from === s1 ? s2 : s1;
+    if (!has(allowMask[l], to)) return null;
+    const bt = teacherAt[L.tea * S + to]; if (bt >= 0 && !seen.has(bt)) q.push(bt);
+    const bc = classAt[L.cls * S + to];   if (bc >= 0 && !seen.has(bc)) q.push(bc);
+  }
+  return chain;
+}
+
+function applyMove(m) {
+  const before = total;
+  _un = 0;
+  if (m.k === 1) {
+    m.from = slotOf[m.l];
+    collect(m.l, m.from); collect(m.l, m.s);
+    if (m.from >= 0) rawUnplace(m.l); else total -= W_UNPLACED;
+    rawPlace(m.l, m.s); recalc();
+  } else if (m.k === 2) {
+    m.sa = slotOf[m.a]; m.sb = slotOf[m.b];
+    collect(m.a, m.sa); collect(m.a, m.sb); collect(m.b, m.sb); collect(m.b, m.sa);
+    rawUnplace(m.a); rawUnplace(m.b); rawPlace(m.a, m.sb); rawPlace(m.b, m.sa); recalc();
+  } else {
+    m.olds = m.chain.map(l => slotOf[l]);
+    for (let i = 0; i < m.chain.length; i++) collect(m.chain[i], m.olds[i]);
+    for (const l of m.chain) rawUnplace(l);
+    m.news = m.olds.map(s => (s === m.s1 ? m.s2 : m.s1));
+    for (let i = 0; i < m.chain.length; i++) { rawPlace(m.chain[i], m.news[i]); collect(m.chain[i], m.news[i]); }
+    recalc();
+  }
+  return total - before;
+}
+function revertMove(m) {
+  _un = 0;
+  if (m.k === 1) {
+    collect(m.l, m.s); collect(m.l, m.from);
+    rawUnplace(m.l);
+    if (m.from >= 0) rawPlace(m.l, m.from); else total += W_UNPLACED;
+    recalc();
+  } else if (m.k === 2) {
+    collect(m.a, m.sa); collect(m.a, m.sb); collect(m.b, m.sb); collect(m.b, m.sa);
+    rawUnplace(m.a); rawUnplace(m.b); rawPlace(m.a, m.sa); rawPlace(m.b, m.sb); recalc();
+  } else {
+    for (let i = 0; i < m.chain.length; i++) collect(m.chain[i], m.news[i]);
+    for (const l of m.chain) rawUnplace(l);
+    for (let i = 0; i < m.chain.length; i++) { rawPlace(m.chain[i], m.olds[i]); collect(m.chain[i], m.olds[i]); }
+    recalc();
+  }
+}
+
+let running = false, temp = 0, bestSnap = null, bestCost = Infinity;
+let iters = 0, runStart = 0, snapBefore = null;
+
+function calibrate() {
+  const ds = [];
+  for (let i = 0; i < 300; i++) {
+    const m = randomMove(); if (!m) continue;
+    const d = applyMove(m); revertMove(m);
+    if (d > 0) ds.push(d);
+  }
+  const avg = ds.length ? ds.reduce((a, b) => a + b, 0) / ds.length : 50;
+  return avg / Math.log(1 / 0.8);
+}
+
+function startAuto() {
+  if (running) { stopAuto(); return; }
+  snapBefore = Array.from(slotOf);
+  greedyFill();
+  rebuildCost();
+  temp = calibrate();
+  bestCost = total; bestSnap = Array.from(slotOf);
+  running = true; iters = 0; runStart = performance.now();
+  document.getElementById('btnAuto').textContent = '■ Dừng';
+  document.getElementById('btnAuto').classList.add('danger');
+  step();
+}
+function stopAuto() {
+  running = false;
+  if (bestSnap) { for (let i = 0; i < N; i++) rawUnplaceSafe(i); for (let i = 0; i < N; i++) if (bestSnap[i] >= 0) rawPlace(i, bestSnap[i]); rebuildCost(); }
+  const ch = [];
+  for (let i = 0; i < N; i++) if (snapBefore[i] !== slotOf[i]) ch.push({ id: i, from: snapBefore[i], to: slotOf[i] });
+  pushOp(ch);
+  document.getElementById('btnAuto').textContent = '⚡ Xếp tự động';
+  document.getElementById('btnAuto').classList.remove('danger');
+  render();
+  const secs = ((performance.now() - runStart) / 1000).toFixed(1);
+  toast('Xếp xong', `Đã xếp ${placedCount}/${N} tiết trong ${secs} giây. Điểm phạt mềm ${scaled()}.`, 'Hoàn tác', undo);
+}
+
+function step() {
+  if (!running) return;
+  const t0 = performance.now();
+  while (performance.now() - t0 < 24) {              // ~24ms mỗi khung hình
+    for (let i = 0; i < 400; i++) {
+      const m = randomMove(); if (!m) continue;
+      const d = applyMove(m);
+      iters++;
+      if (d <= 0 || rnd() < Math.exp(-d / temp)) {
+        if (total < bestCost) { bestCost = total; bestSnap = Array.from(slotOf); }
+      } else revertMove(m);
+    }
+    temp *= 0.9992;
+    if (temp < 0.4) temp = calibrate() * 0.3;         // hâm nóng lại
+  }
+  render(true);
+  requestAnimationFrame(step);
+}
+
+/* ==========================================================================
+   7. HIỂN THỊ
+   ========================================================================== */
+let view = 'class', dragL = -1, lights = null, hotSlot = -1, lastLightMs = 0;
+const gridwrap = document.getElementById('gridwrap');
+
+function render(light) {
+  renderGrid();
+  if (!light) renderPanel();
+  renderStatus();
+}
+
+function renderGrid() {
+  const rows = view === 'class' ? CLASSES : TEACHERS;
+  let h = '<table class="grid"><thead><tr class="days"><th class="corner"></th>';
+  for (let d = 0; d < D; d++) h += `<th colspan="${P}">${DAYSS[d]}</th>`;
+  h += '</tr><tr class="pers"><th class="corner"></th>';
+  for (let d = 0; d < D; d++) for (let p = 0; p < P; p++) h += `<th>${p + 1}</th>`;
+  h += '</tr></thead><tbody>';
+
+  for (let r = 0; r < rows.length; r++) {
+    const isC = view === 'class';
+    h += '<tr><th class="rowhead">' +
+      (isC ? `${rows[r].name}<small>${countRow(r)}/${25}</small>`
+           : `${TEACHERS[r].short}<small>${SUBJ[TEACHERS[r].subj].short} · ${countRow(r)}t</small>`) +
+      '</th>';
+    for (let s = 0; s < S; s++) {
+      const l = isC ? classAt[r * S + s] : teacherAt[r * S + s];
+      let cls = 'cell', mark = '', inner = '';
+      if ((s % P) === P - 1) cls += ' dayend';
+      if (!isC && has(teacherOff[r], s) && l < 0) cls += ' off';
+      if (isC && dragL >= 0 && LESSONS[dragL].cls === r && lights) {
+        const g = lights[s];
+        cls += ' tl-' + g.st;
+        if (s === hotSlot) cls += ' hot';
+        mark = `<span class="tlmark">${g.st === 'ok' ? (g.swap != null ? '⇄' : '✓') : g.st === 'warn' ? '!' : '✕'}</span>`;
+      }
+      if (l >= 0) {
+        const L = LESSONS[l], S_ = SUBJ[L.subj];
+        inner = `<div class="lesson${pinned[l] ? ' pinned' : ''}${l === dragL ? ' ghosted' : ''}"
+          data-l="${l}" style="background:${S_.bg}">
+          <div class="s">${S_.short}</div>
+          <div class="t">${isC ? TEACHERS[L.tea].short : CLASSES[L.cls].name}</div>
+          <i style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${S_.ln};border-radius:3px 0 0 3px"></i>
+        </div>`;
+      }
+      h += `<td class="${cls}" data-s="${s}" data-r="${r}">${inner}${mark}</td>`;
+    }
+    h += '</tr>';
+  }
+  h += '</tbody></table>';
+  const sx = gridwrap.scrollLeft, sy = gridwrap.scrollTop;
+  gridwrap.innerHTML = h;
+  gridwrap.scrollLeft = sx; gridwrap.scrollTop = sy;
+}
+
+function countRow(r) {
+  let n = 0;
+  for (let s = 0; s < S; s++) if ((view === 'class' ? classAt[r * S + s] : teacherAt[r * S + s]) >= 0) n++;
+  return n;
+}
+
+function renderPanel() {
+  const byClass = {};
+  for (let i = 0; i < N; i++) {
+    if (slotOf[i] >= 0) continue;
+    const key = LESSONS[i].cls + '|' + LESSONS[i].subj;
+    (byClass[key] = byClass[key] || []).push(i);
+  }
+  const groups = {};
+  for (const k in byClass) {
+    const ci = +k.split('|')[0];
+    (groups[ci] = groups[ci] || []).push(byClass[k]);
+  }
+  const keys = Object.keys(groups).map(Number).sort((a, b) => a - b);
+  const remain = N - placedCount;
+  document.getElementById('pcount').textContent =
+    remain ? `Còn ${remain} tiết chưa xếp` : 'Đã xếp hết';
+
+  if (!keys.length) {
+    document.getElementById('plist').innerHTML =
+      '<div class="empty"><b>Đã xếp hết 300 tiết</b>Kéo tiết trong lưới để tinh chỉnh, hoặc bấm Xếp tự động để tối ưu tiếp.</div>';
+    return;
+  }
+  let h = '';
+  for (const ci of keys) {
+    const n = groups[ci].reduce((a, g) => a + g.length, 0);
+    h += `<div class="pgroup"><h3><span>${CLASSES[ci].name}</span><span class="n mono">còn ${n}</span></h3>`;
+    for (const g of groups[ci]) {
+      const l = g[0], L = LESSONS[l], S_ = SUBJ[L.subj];
+      const dom = domain(l);
+      const hard = dom < g.length * 3;
+      h += `<div class="card${hard ? ' hard' : ''}" data-l="${l}" style="background:${S_.bg}">
+        <div class="s"><span>${S_.name}</span><span class="n mono">${hard ? '⚠ ' : ''}×${g.length}</span></div>
+        <div class="t">${TEACHERS[L.tea].name}</div>
+        <i style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${S_.ln};border-radius:3px 0 0 3px"></i>
+      </div>`;
+    }
+    h += '</div>';
+  }
+  document.getElementById('plist').innerHTML = h;
+}
+
+const scaled = () => Math.round((total - (N - placedCount) * W_UNPLACED) / Math.max(1, placedCount) * 100);
+
+function renderStatus() {
+  document.getElementById('stHard').textContent = '0';
+  document.getElementById('dotHard').style.background = 'var(--ok-line)';
+  document.getElementById('stPlaced').textContent = placedCount + '/' + N;
+  document.getElementById('stBar').style.width = (placedCount / N * 100) + '%';
+  document.getElementById('stScore').textContent = scaled();
+  document.getElementById('stNote').textContent =
+    scaled() < 40 ? '· rất tốt' : scaled() < 90 ? '· chấp nhận được' : '· còn cải thiện được';
+  document.getElementById('stPerf').textContent = running
+    ? `${(iters / 1000).toFixed(0)}k phép thử · T=${temp.toFixed(1)}`
+    : (lastLightMs ? `đèn giao thông: ${lastLightMs.toFixed(2)} ms / 30 ô` : '');
+}
+
+/* ==========================================================================
+   8. KÉO THẢ
+   ========================================================================== */
+const ghost = document.getElementById('ghost'), tip = document.getElementById('tip');
+let down = null, tipTimer = null;
+
+document.addEventListener('mousedown', e => {
+  const el = e.target.closest('.lesson,.card');
+  if (!el || running) return;
+  const l = +el.dataset.l;
+  if (e.altKey && el.classList.contains('lesson')) {
+    pinned[l] = pinned[l] ? 0 : 1; render();
+    return;
+  }
+  if (pinned[l]) { toast('Tiết đã ghim', 'Giữ Alt và bấm vào tiết để bỏ ghim.'); return; }
+  down = { l, x: e.clientX, y: e.clientY };
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', e => {
+  if (down && dragL < 0) {
+    if (Math.hypot(e.clientX - down.x, e.clientY - down.y) < 4) return;
+    beginDrag(down.l);
+  }
+  if (dragL < 0) return;
+  ghost.style.left = (e.clientX + 12) + 'px';
+  ghost.style.top = (e.clientY + 12) + 'px';
+
+  ghost.style.display = 'none';
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  ghost.style.display = 'block';
+  const td = el && el.closest ? el.closest('td.cell') : null;
+  const ns = td && +td.dataset.r === LESSONS[dragL].cls ? +td.dataset.s : -1;
+  if (ns !== hotSlot) {
+    hotSlot = ns; renderGrid(); hideTip();
+    if (ns >= 0) {
+      clearTimeout(tipTimer);
+      tipTimer = setTimeout(() => showTip(e.clientX, e.clientY, lights[ns]), 380);
+    }
+  } else if (tip.style.display === 'block') {
+    tip.style.left = Math.min(window.innerWidth - 300, e.clientX + 14) + 'px';
+    tip.style.top = (e.clientY + 18) + 'px';
+  }
+});
+
+document.addEventListener('mouseup', e => {
+  if (dragL < 0) { down = null; return; }
+  const l = dragL, g = hotSlot >= 0 ? lights[hotSlot] : null;
+  endDrag();
+  if (!g) return;
+  if (g.st === 'block') {
+    const td = document.querySelector(`td.cell[data-s="${hotSlot}"][data-r="${LESSONS[l].cls}"]`);
+    if (td) { td.classList.add('shake'); setTimeout(() => td.classList.remove('shake'), 200); }
+    toast('Không đặt được ở đây', g.why[0]);
+    hotSlot = -1; render(); return;
+  }
+  if (g.self) { hotSlot = -1; render(); return; }
+
+  const ch = [];
+  if (g.swap != null) {
+    const b = g.swap, sa = slotOf[l], sb = slotOf[b];
+    rawUnplace(l); rawUnplace(b); rawPlace(l, sb); rawPlace(b, sa);
+    ch.push({ id: l, from: sa, to: sb }, { id: b, from: sb, to: sa });
+  } else {
+    const from = slotOf[l];
+    ch.push({ id: l, from, to: hotSlot });
+    if (from >= 0) rawUnplace(l);
+    rawPlace(l, hotSlot);
+  }
+  rebuildCost(); pushOp(ch);
+  const target = hotSlot;
+  hotSlot = -1; render();
+  const td = document.querySelector(`td.cell[data-s="${target}"][data-r="${LESSONS[l].cls}"] .lesson`);
+  if (td) { td.classList.add('flash'); setTimeout(() => td.classList.remove('flash'), 300); }
+  if (g.st === 'warn') {
+    toast('Đã đặt, nhưng:', null, 'Hoàn tác', undo, g.why);
+  }
+});
+
+function beginDrag(l) {
+  dragL = l; down = null;
+  lights = computeLights(l);
+  const L = LESSONS[l], S_ = SUBJ[L.subj];
+  ghost.style.background = S_.bg;
+  ghost.innerHTML = `<div class="s">${S_.short} · ${CLASSES[L.cls].name}</div>
+                     <div class="t">${TEACHERS[L.tea].name}</div>
+                     <i style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${S_.ln};border-radius:3px 0 0 3px"></i>`;
+  ghost.style.display = 'block';
+  document.body.classList.add('dragging');
+  if (view !== 'class') { view = 'class'; syncView(); }
+  renderGrid(); renderStatus();
+}
+function endDrag() {
+  dragL = -1; lights = null; ghost.style.display = 'none';
+  document.body.classList.remove('dragging'); hideTip(); down = null;
+}
+function showTip(x, y, g) {
+  if (!g || g.self || (g.st === 'ok' && !g.why.length)) return;
+  const head = g.st === 'block' ? 'Không đặt được ở đây'
+            : g.st === 'warn' ? `Đặt được, nhưng: (+${g.d} điểm phạt)` : 'Đặt được';
+  tip.className = g.st;
+  tip.innerHTML = `<div class="h">${head}</div><ul>${g.why.map(w => `<li>${w}</li>`).join('')}</ul>`;
+  tip.style.left = Math.min(window.innerWidth - 300, x + 14) + 'px';
+  tip.style.top = (y + 18) + 'px';
+  tip.style.display = 'block';
+}
+function hideTip() { clearTimeout(tipTimer); tip.style.display = 'none'; }
+
+/* ==========================================================================
+   9. THÔNG BÁO
+   ========================================================================== */
+function toast(title, body, actionLabel, action, list) {
+  const box = document.getElementById('toast');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<div class="body"><b>${title}</b>${body ? body : ''}
+    ${list ? `<ul>${list.map(w => `<li>${w}</li>`).join('')}</ul>` : ''}</div>`;
+  if (actionLabel) {
+    const b = document.createElement('button');
+    b.textContent = actionLabel;
+    b.onclick = () => { action(); el.remove(); };
+    el.appendChild(b);
+  }
+  box.appendChild(el);
+  setTimeout(() => el.remove(), 6000);
+  while (box.children.length > 3) box.firstChild.remove();
+}
+
+/* ==========================================================================
+   10. ĐIỀU KHIỂN
+   ========================================================================== */
+function syncView() {
+  document.querySelectorAll('#viewGroup button')
+    .forEach(b => b.classList.toggle('on', b.dataset.view === view));
+}
+document.getElementById('viewGroup').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  view = b.dataset.view; syncView(); render();
+};
+document.getElementById('btnAuto').onclick = startAuto;
+document.getElementById('btnUndo').onclick = undo;
+document.getElementById('btnRedo').onclick = redo;
+document.getElementById('btnGreedy').onclick = () => {
+  const before = Array.from(slotOf);
+  greedyFill(); rebuildCost();
+  const ch = [];
+  for (let i = 0; i < N; i++) if (before[i] !== slotOf[i]) ch.push({ id: i, from: before[i], to: slotOf[i] });
+  pushOp(ch); render();
+  toast('Xếp nhanh xong', `Đã đặt ${placedCount}/${N} tiết. Bấm Xếp tự động để tối ưu chất lượng.`);
+};
+document.getElementById('btnClear').onclick = () => {
+  const before = Array.from(slotOf);
+  for (let i = 0; i < N; i++) if (!pinned[i]) rawUnplaceSafe(i);
+  rebuildCost();
+  const ch = [];
+  for (let i = 0; i < N; i++) if (before[i] !== slotOf[i]) ch.push({ id: i, from: before[i], to: slotOf[i] });
+  pushOp(ch); render();
+};
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+    if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+  }
+  if (e.key === '1') { view = 'class'; syncView(); render(); }
+  if (e.key === '2') { view = 'teacher'; syncView(); render(); }
+});
+
+/* ---------- Khởi động: xếp sẵn khoảng 55% để có gì đó nhìn ---------- */
+(function boot() {
+  rebuildCost();
+  const order = [];
+  for (let i = 0; i < N; i++) order.push(i);
+  order.sort((a, b) => domain(a) - domain(b));
+  for (const l of order.slice(0, Math.floor(N * 0.55))) {
+    let best = -1, bestC = Infinity;
+    for (let s = 0; s < S; s++) {
+      if (!canPlace(l, s)) continue;
+      const d = tryDelta(l, s) + rnd() * 25;
+      if (d < bestC) { bestC = d; best = s; }
+    }
+    if (best >= 0) moveLesson(l, best);
+  }
+  // ghim sẵn vài tiết để minh hoạ
+  for (let c = 0; c < C; c++) { const l = classAt[c * S + 0]; if (l >= 0) pinned[l] = 1; }
+  rebuildCost();
+  render();
+})();
+</script>
+</body>
+</html>

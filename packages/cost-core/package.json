@@ -1,0 +1,16 @@
+{
+  "name": "@tkb/cost-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hàm chi phí ràng buộc mềm dùng chung cho solver worker / API / trình duyệt (solver spec §12.4)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test src/golden.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}

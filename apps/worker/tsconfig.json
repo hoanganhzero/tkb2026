@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tkb/cost-core": ["../../packages/cost-core/src/index.ts"],
+      "@tkb/solver-core": ["../../packages/solver-core/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}
