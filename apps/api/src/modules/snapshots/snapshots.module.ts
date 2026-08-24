@@ -71,21 +71,14 @@ export class SnapshotsService {
       const payload = v.payload as SnapshotPayload;
 
       await sql`DELETE FROM lessons WHERE timetable_id = ${timetableId}`;
-      if (payload.lessons.length) {
+      for (const lesson of payload.lessons) {
         await sql`
           INSERT INTO lessons (id, school_id, timetable_id, assignment_id, subject_id,
                                day_of_week, period_id, room_id, is_pinned, double_group_id)
-          SELECT l.id, current_school_id(), ${timetableId}, l.assignment_id, l.subject_id,
-                 l.day_of_week, l.period_id, l.room_id, l.is_pinned, l.double_group_id
-          FROM unnest(${payload.lessons.map((l) => l.id)}::uuid[],
-                      ${payload.lessons.map((l) => l.assignment_id)}::uuid[],
-                      ${payload.lessons.map((l) => l.subject_id)}::uuid[],
-                      ${payload.lessons.map((l) => l.day_of_week)}::int[],
-                      ${payload.lessons.map((l) => l.period_id)}::uuid[],
-                      ${payload.lessons.map((l) => l.room_id)}::uuid[],
-                      ${payload.lessons.map((l) => l.is_pinned)}::boolean[],
-                      ${payload.lessons.map((l) => l.double_group_id)}::uuid[])
-            AS l(id, assignment_id, subject_id, day_of_week, period_id, room_id, is_pinned, double_group_id)`;
+          VALUES (${lesson.id}, current_school_id(), ${timetableId},
+                  ${lesson.assignment_id}, ${lesson.subject_id}, ${lesson.day_of_week},
+                  ${lesson.period_id}, ${lesson.room_id}, ${lesson.is_pinned},
+                  ${lesson.double_group_id})`;
       }
       for (const c of payload.classes) {
         await sql`INSERT INTO lesson_classes (lesson_id, class_id) VALUES (${c.lesson_id}, ${c.other_id})`;
