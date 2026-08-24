@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Injectable, Module, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Inject, Injectable, Module, Param, Post, Put, Query } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { ApiError } from '../../common/api-error.js';
 import {
@@ -13,7 +13,7 @@ import {
  */
 @Injectable()
 export class AvailabilityService {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   private assertOwnerType(t: string): 'teacher' | 'class' | 'room' {
     if (t === 'teacher' || t === 'class' || t === 'room') return t;
@@ -129,7 +129,7 @@ async function validPeriods(db: DbService, yid: string): Promise<Set<string>> {
 
 @Controller('schools/:sid/years/:yid/availability')
 export class AvailabilityController {
-  constructor(private svc: AvailabilityService) {}
+  constructor(@Inject(AvailabilityService) private svc: AvailabilityService) {}
 
   @Get()
   list(

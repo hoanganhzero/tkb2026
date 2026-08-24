@@ -1,5 +1,6 @@
 ﻿import { Injectable } from '@nestjs/common';
 import crypto from 'node:crypto';
+import { Inject } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { hashPassword, verifyPassword } from '../../common/password.util.js';
 import { signJwt } from '../../common/jwt.util.js';
@@ -28,7 +29,7 @@ async function issueTokens(db: Pick<DbService, 'sql'>, userId: string): Promise<
 
 @Injectable()
 export class AuthService {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   async register(input: {
     fullName: string; email: string; phone?: string;

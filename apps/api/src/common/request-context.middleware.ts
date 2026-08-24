@@ -1,9 +1,9 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { verifyJwt } from './jwt.util.js';
 import { ApiError } from './api-error.js';
-import type { DbService } from '../db/db.service.js';
+import { DbService } from '../db/db.service.js';
 
 export interface RequestContextData {
   userId?: string;
@@ -24,7 +24,7 @@ const PUBLIC_ROUTES = [
 
 @Injectable()
 export class RequestContextMiddleware implements NestMiddleware {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   async use(req: Request & { requestId?: string }, _res: Response, next: NextFunction) {
     const path = req.originalUrl ?? req.url ?? '';

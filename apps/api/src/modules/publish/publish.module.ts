@@ -1,4 +1,4 @@
-import { Controller, Get, Injectable, Module, Param, Post } from '@nestjs/common';
+import { Controller, Get, Inject, Injectable, Module, Param, Post } from '@nestjs/common';
 import crypto from 'node:crypto';
 import { DbService } from '../../db/db.service.js';
 import { ApiError, notFound } from '../../common/api-error.js';
@@ -10,7 +10,7 @@ import type { PublishableState } from './publish.logic.ts';
 
 @Injectable()
 export class PublishService {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   /** Trạng thái + blocker cho UI hiện nút Công bố khi khả dụng */
   state(timetableId: string) {
@@ -81,7 +81,7 @@ export class PublishService {
 
 @Controller('schools/:sid/timetables/:tid')
 export class PublishController {
-  constructor(private svc: PublishService) {}
+  constructor(@Inject(PublishService) private svc: PublishService) {}
 
   @Get('publish-state')
   state(@Param('tid') tid: string) { return this.svc.state(tid); }

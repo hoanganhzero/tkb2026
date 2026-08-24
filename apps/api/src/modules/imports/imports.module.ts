@@ -1,10 +1,13 @@
-import { Body, Controller, Injectable, Module, Param, Post } from '@nestjs/common';
+import { Body, Controller, Inject, Injectable, Module, Param, Post } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { ImportsService, type ClientTeacherRow } from './imports.service.js';
 
 @Injectable()
 export class ImportsGatewayService {
-  constructor(private db: DbService, private imp: ImportsService) {}
+  constructor(
+    @Inject(DbService) private db: DbService,
+    @Inject(ImportsService) private imp: ImportsService,
+  ) {}
 
   async validateTeachers(yid: string, rows: ClientTeacherRow[]) {
     return this.imp.validateTeachers({
@@ -35,7 +38,7 @@ export class ImportsGatewayService {
 
 @Controller('schools/:sid/years/:yid/imports/teachers')
 export class ImportsController {
-  constructor(private gw: ImportsGatewayService) {}
+  constructor(@Inject(ImportsGatewayService) private gw: ImportsGatewayService) {}
 
   @Post('validate')
   validate(@Param('yid') yid: string, @Body() body: { rows?: ClientTeacherRow[] }) {

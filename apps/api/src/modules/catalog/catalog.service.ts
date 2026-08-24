@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import postgres from 'postgres';
 import { DbService } from '../../db/db.service.js';
 import { ApiError, notFound } from '../../common/api-error.js';
@@ -16,7 +16,7 @@ import {
 
 @Injectable()
 export class CatalogService {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   private def(resource: string): ResourceDef {
     const def = CATALOG[resource];

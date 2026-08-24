@@ -1,5 +1,6 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
+import { Inject } from '@nestjs/common';
 import { buildTableXlsx } from '../export/xlsx.ts';
 import {
   buildMatrix, planApply,
@@ -10,7 +11,7 @@ import {
 
 @Injectable()
 export class AssignmentsService {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   /** GET .../assignments/matrix — payload cho màn hình phân công §7 */
   async matrix(yid: string): Promise<MatrixPayload> {

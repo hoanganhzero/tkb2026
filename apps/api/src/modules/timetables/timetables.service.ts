@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { ApiError, notFound, staleVersion } from '../../common/api-error.js';
 import { requestContext } from '../../common/request-context.middleware.js';
@@ -14,7 +14,7 @@ const PALETTE = [
 
 @Injectable()
 export class TimetablesService {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   /** school_year_id của một timetable — helper nội bộ */
   private async yidOf(sql: any, timetableId: string): Promise<string> {

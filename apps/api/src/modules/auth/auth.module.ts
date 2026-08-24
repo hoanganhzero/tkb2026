@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Module, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Module, Post, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthService } from './auth.service.js';
 import { DbModule } from '../../db/db.service.js';
@@ -6,7 +6,7 @@ import { requestContext } from '../../common/request-context.middleware.js';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private auth: AuthService) {}
+  constructor(@Inject(AuthService) private auth: AuthService) {}
 
   @Post('register')
   register(@Body() body: {

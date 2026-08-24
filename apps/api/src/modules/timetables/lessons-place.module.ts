@@ -1,10 +1,11 @@
-import { Body, Controller, Injectable, Module, Post } from '@nestjs/common';
+import { Body, Controller, Inject, Module, Post } from '@nestjs/common';
 import { TimetablesService } from './timetables.service.js';
+import { TimetablesModule } from './timetables.module.js';
 
 /** POST /lessons/place — đặt tiết mới từ phân công (khác move: tạo lesson mới) */
 @Controller('lessons')
 export class LessonsPlaceController {
-  constructor(private svc: TimetablesService) {}
+  constructor(@Inject(TimetablesService) private svc: TimetablesService) {}
 
   @Post('place')
   place(@Body() body: { timetableId: string; assignmentId: string; dayOfWeek: number; periodId: string }) {
@@ -17,7 +18,7 @@ export class LessonsPlaceController {
 }
 
 @Module({
+  imports: [TimetablesModule],
   controllers: [LessonsPlaceController],
-  providers: []
 })
 export class LessonsPlaceModule {}

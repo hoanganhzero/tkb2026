@@ -3,6 +3,7 @@ import {
   SubscribeMessage, WebSocketGateway, WebSocketServer
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
+import { Inject } from '@nestjs/common';
 import { ChannelRegistry, envelope } from './events.js';
 import { verifyJwt } from '../common/jwt.util.js';
 import { DbService } from '../db/db.service.js';
@@ -27,7 +28,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private registry = new ChannelRegistry();
   private conns = new Map<string, ConnState>();
 
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   handleConnection(client: Socket): void {
     try {

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Module, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Inject, Module, Param, Post } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { requestContext } from '../../common/request-context.middleware.js';
 import { ApiError, notFound } from '../../common/api-error.js';
@@ -14,7 +14,7 @@ import {
  */
 @Controller('schools/:sid/timetables/:tid/locks')
 export class LocksController {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   private async loadExisting(sql: any, tid: string): Promise<LockRow[]> {
     const rows = await sql`

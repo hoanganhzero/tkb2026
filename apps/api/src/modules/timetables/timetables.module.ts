@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Module, Param, Patch, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Module, Param, Patch, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { TimetablesService } from './timetables.service.js';
 import { DbModule } from '../../db/db.service.js';
 @Controller('schools/:sid/timetables')
 export class TimetablesController {
-  constructor(private svc: TimetablesService) {}
+  constructor(@Inject(TimetablesService) private svc: TimetablesService) {}
 
   /** ★ GET /schools/:sid/timetables/:tid/grid — tkb_api_spec.md §3 */
   @Get(':tid/grid')
@@ -55,7 +55,7 @@ export class TimetablesController {
 /** Endpoint tuyệt đối theo quy ước tkb_api_spec.md §1.1 */
 @Controller('lessons')
 export class LessonsController {
-  constructor(private svc: TimetablesService) {}
+  constructor(@Inject(TimetablesService) private svc: TimetablesService) {}
 
   /** ★ PATCH /lessons/:lid/move — tkb_api_spec.md §4 */
   @Patch(':lid/move')
@@ -79,6 +79,7 @@ export class LessonsController {
 @Module({
   imports: [DbModule],
   controllers: [TimetablesController, LessonsController],
-  providers: [TimetablesService]
+  providers: [TimetablesService],
+  exports: [TimetablesService]
 })
 export class TimetablesModule {}

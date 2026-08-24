@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Injectable, Module, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Injectable, Module, Param, Post } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { ApiError, notFound } from '../../common/api-error.js';
 import { requestContext } from '../../common/request-context.middleware.js';
@@ -9,7 +9,7 @@ import {
 
 @Injectable()
 export class SnapshotsService {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   list(timetableId: string) {
     return this.db.tx(async (sql) => {
@@ -103,7 +103,7 @@ export class SnapshotsService {
 
 @Controller('schools/:sid/timetables/:tid/snapshots')
 export class SnapshotsController {
-  constructor(private svc: SnapshotsService) {}
+  constructor(@Inject(SnapshotsService) private svc: SnapshotsService) {}
 
   @Get()
   list(@Param('tid') tid: string) { return this.svc.list(tid); }

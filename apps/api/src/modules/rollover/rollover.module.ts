@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Injectable, Module, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Injectable, Module, Param, Post, Query } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { ApiError } from '../../common/api-error.js';
 import {
@@ -13,7 +13,7 @@ import {
 
 @Injectable()
 export class RolloverService {
-  constructor(private db: DbService) {}
+  constructor(@Inject(DbService) private db: DbService) {}
 
   async preview(schoolId: string, q: {
     fromYearId: string;
@@ -386,7 +386,7 @@ function spanOf(newGrades: Array<{ ordinal: number }>): { first: number; last: n
 
 @Controller('schools/:sid/rollover')
 export class RolloverController {
-  constructor(private svc: RolloverService) {}
+  constructor(@Inject(RolloverService) private svc: RolloverService) {}
 
   @Get('preview')
   preview(

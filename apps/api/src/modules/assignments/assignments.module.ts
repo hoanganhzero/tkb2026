@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Module, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Module, Param, Post, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { DbService } from '../../db/db.service.js';
 import { AssignmentsService } from './assignments.service.js';
@@ -8,7 +8,7 @@ import { AssignmentsService } from './assignments.service.js';
  */
 @Controller('schools/:sid/years/:yid/assignments')
 export class AssignmentsController {
-  constructor(private svc: AssignmentsService) {}
+  constructor(@Inject(AssignmentsService) private svc: AssignmentsService) {}
 
   /** ★ Ma trận Lớp × Môn */
   @Get('matrix')

@@ -23,7 +23,7 @@ class HealthController {
 @Module({
   imports: [DbModule, AuthModule, TimetablesModule, LocksModule, CatalogModule,
             AssignmentsModule, AvailabilityModule, SnapshotsModule, PublishModule,
-            ImportsModule],
+            ImportsModule, RolloverModule, LessonsPlaceModule],
   providers: [EventsGateway],
   controllers: [HealthController]
 })

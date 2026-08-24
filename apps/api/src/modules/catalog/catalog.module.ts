@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Delete, Get, Module, Param, Patch, Post, Put
+  Body, Controller, Delete, Get, Inject, Module, Param, Patch, Post, Put
 } from '@nestjs/common';
 import { CatalogService } from './catalog.service.js';
 
@@ -10,7 +10,7 @@ import { CatalogService } from './catalog.service.js';
  */
 @Controller('schools/:sid/years/:yid')
 export class CatalogController {
-  constructor(private svc: CatalogService) {}
+  constructor(@Inject(CatalogService) private svc: CatalogService) {}
 
   /* ---- Endpoint đặc biệt đặt TRƯỚC route generic :resource/:id ---- */
 
