@@ -266,8 +266,20 @@ async function main() {
   for (const w of writes) {
     const key = w.assignment_id + ':' + w.day_of_week + ':' + w.period_id;
     const lid = byKey.get(key);
-    childClasses.push({ lesson_id: lid, class_id: classByAssignment.get(w.assignment_id) });
-    childTeachers.push({ lesson_id: lid, teacher_id: teacherByAssignment.get(w.assignment_id) });
+    childClasses.push({
+      lesson_id: lid,
+      class_id: classByAssignment.get(w.assignment_id),
+      timetable_id: tt.id,
+      day_of_week: w.day_of_week,
+      period_id: w.period_id
+    });
+    childTeachers.push({
+      lesson_id: lid,
+      teacher_id: teacherByAssignment.get(w.assignment_id),
+      timetable_id: tt.id,
+      day_of_week: w.day_of_week,
+      period_id: w.period_id
+    });
   }
   await sql`INSERT INTO lesson_classes ${sql(childClasses)}`;
   await sql`INSERT INTO lesson_teachers ${sql(childTeachers)}`;
