@@ -164,7 +164,13 @@ async function main() {
         RETURNING id`;
       await sql`INSERT INTO assignment_classes (assignment_id, class_id) VALUES (${a.id}, ${classes[ci].id})`;
       await sql`INSERT INTO assignment_teachers (assignment_id, teacher_id) VALUES (${a.id}, ${teacher.id})`;
-      assignmentRows.push({ id: a.id, subjectId: subjects[si].id });
+      assignmentRows.push({
+        id: a.id,
+        subjectId: subjects[si].id,
+        classIndex: ci,
+        subjectIndex: si,
+        teacherIndex: teachers.findIndex((t) => t.id === teacher.id)
+      });
     }
   }
 
@@ -186,27 +192,31 @@ async function main() {
     RETURNING id`;
 
   const { solve } = await import('@tkb/solver-core');
-  const problemInput = {
-    activeDays: [1, 2, 3, 4, 5, 6],
-    periods: periods.map((p, i) => ({ id: p.id, session: p.session, dayPosition: i + 1 })),
-    classes: classes.map((c) => c.id),
-    teachers: teachers.map((t) => t.id),
-    subjects: subjects.map((s) => s.id),
-    assignments: assignmentRows.map((a) => ({
-      id: a.id, subjectId: a.subjectId, classIds: [], teacherIds: []
-    })),
-    lessons: assignmentRows.flatMap(() => [{ assignmentId: '' }]), // placeholder — điền đúng dưới
-    availability
-  };
-  // Điền lessonAssignment chính xác: mỗi assignment có ppw tiết của MỘT lớp
+  // Mỗi assignment là một (lớp × môn × giáo viên), đúng hợp đồng SolverProblem.
   const lessonMeta = [];
-  for (let ci = 0; ci < classes.length; ci++) {
-    for (let k = 0; k < assignmentRows.length / classes.length; k++) {
-      const a = assignmentRows[ci * (assignmentRows.length / classes.length) + k];
-      for (let r = 0; r < SUBJECTS[k].ppw; r++) lessonMeta.push({ assignmentId: a.id });
+  const lessonAssignment = [];
+  for (let aid = 0; aid < assignmentRows.length; aid++) {
+    const a = assignmentRows[aid];
+    for (let r = 0; r < SUBJECTS[a.subjectIndex].ppw; r++) {
+      lessonMeta.push({ assignmentId: a.id });
+      lessonAssignment.push(aid);
     }
   }
-  problemInput.lessons = lessonMeta;
+  const problemInput = {
+    days: 6,
+    periodsPerDay: periods.length,
+    numClasses: classes.length,
+    numTeachers: teachers.length,
+    numSubjects: subjects.length,
+    assignments: assignmentRows.map((a) => ({
+      classes: [a.classIndex],
+      teachers: [a.teacherIndex],
+      subject: a.subjectIndex,
+      difficulty: SUBJECTS[a.subjectIndex].diff,
+      maxPerDay: 1
+    })),
+    lessonAssignment
+  };
 
   console.log(`Xếp ${lessonMeta.length} tiết cho ${classes.length} lớp…`);
   const result = solve(problemInput, { timeLimitMs: 2500, seed: 42 });
