@@ -70,14 +70,14 @@ export class TimetablesService {
       SELECT DISTINCT t.id, t.full_name AS name, t.short_name AS short
       FROM lesson_teachers lt
       JOIN lessons l ON l.id = lt.lesson_id AND l.timetable_id = ${tid}
-      JOIN teachers t ON t.id = lt.teacher_id ORDER BY t.full_name`;
+      JOIN teachers t ON t.id = lt.teacher_id ORDER BY name`;
     const teacherIndex = new Map<string, number>();
     teachers.forEach((t: any, i: number) => teacherIndex.set(t.id, i));
 
     const subjects = await sql`
       SELECT DISTINCT s.id, s.short_name AS short, s.name, s.color
       FROM lessons l JOIN subjects s ON s.id = l.subject_id
-      WHERE l.timetable_id = ${tid} ORDER BY s.sort_order`;
+      WHERE l.timetable_id = ${tid} ORDER BY s.name`;
     const subjectIndex = new Map<string, number>();
     subjects.forEach((s: any, i: number) => subjectIndex.set(s.id, i));
 

@@ -76,7 +76,7 @@ export class RolloverService {
         SELECT sgc.subject_id AS "subjectId", g.ordinal AS "gradeOrdinal",
                sgc.periods_per_week AS "periodsPerWeek"
         FROM subject_grade_configs sgc JOIN grades g ON g.id = sgc.grade_id
-        WHERE sgc.school_year_id = ${q.fromYearId}`;
+        WHERE g.school_year_id = ${q.fromYearId}`;
 
       const subjects = await sql`SELECT id FROM subjects WHERE school_year_id = ${q.fromYearId}`;
       const subjectSet = new Set(subjects.map((s: any) => s.id));
@@ -195,7 +195,7 @@ export class RolloverService {
       const cfgRows = await sql`
         SELECT sgc.subject_id, g.ordinal AS grade_ord, sgc.periods_per_week
         FROM subject_grade_configs sgc JOIN grades g ON g.id = sgc.grade_id
-        WHERE sgc.school_year_id = ${q.fromYearId}`;
+        WHERE g.school_year_id = ${q.fromYearId}`;
       for (const c of cfgRows) {
         const newSubj = subjIdBySource.get(c.subject_id);
         const newGrade = gradeIdByOrd.get(Number(c.grade_ord));
@@ -308,7 +308,7 @@ export class RolloverService {
         SELECT sgc.subject_id AS "subjectId", g.ordinal AS "gradeOrdinal",
                sgc.periods_per_week AS "periodsPerWeek"
         FROM subject_grade_configs sgc JOIN grades g ON g.id = sgc.grade_id
-        WHERE sgc.school_year_id = ${q.fromYearId}`;
+        WHERE g.school_year_id = ${q.fromYearId}`;
       const subjectsAll = await sql`SELECT id FROM subjects WHERE school_year_id = ${q.fromYearId}`;
       const limits = new Map<string, number>();
       for (const t of teacherMapRows) limits.set(t.id, t.lim ?? 19);
