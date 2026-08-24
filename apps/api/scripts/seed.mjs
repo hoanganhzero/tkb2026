@@ -90,7 +90,7 @@ async function main() {
     RETURNING id, ordinal`;
   const departments = await sql`
     INSERT INTO departments (school_id, school_year_id, name)
-    SELECT ${school.id}, ${year.id}, d FROM unnest(${DEPARTMENTS}) AS d
+    SELECT ${school.id}, ${year.id}, d FROM unnest(${DEPARTMENTS}::text[]) AS d
     RETURNING id, name`;
   const deptId = (i) => departments[i % departments.length].id;
 
