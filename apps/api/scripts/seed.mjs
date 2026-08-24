@@ -70,12 +70,12 @@ async function main() {
   const morningStarts = ['07:00', '07:50', '08:40', '09:45', '10:35'];
   const afternoonStarts = ['13:00', '13:50', '14:40', '15:30', '16:20'];
   for (let i = 0; i < 5; i++) {
-    periodRows.push({ school_year_id: year.id, session: 'morning', ordinal: i + 1,
+    periodRows.push({ school_id: school.id, school_year_id: year.id, session: 'morning', ordinal: i + 1,
       name: `Tiết ${i + 1}`, start_time: morningStarts[i], end_time: null,
       day_position: pos++ });
   }
   for (let i = 0; i < 5; i++) {
-    periodRows.push({ school_year_id: year.id, session: 'afternoon', ordinal: i + 1,
+    periodRows.push({ school_id: school.id, school_year_id: year.id, session: 'afternoon', ordinal: i + 1,
       name: `Tiết ${i + 1} (chiều)`, start_time: afternoonStarts[i], end_time: null,
       day_position: pos++ });
   }
