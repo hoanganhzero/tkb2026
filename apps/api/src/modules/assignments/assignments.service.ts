@@ -60,7 +60,7 @@ export class AssignmentsService {
                sgc.periods_per_week AS "periodsPerWeek"
         FROM subject_grade_configs sgc
         JOIN grades g ON g.id = sgc.grade_id
-        WHERE sgc.school_year_id = ${yid}`;
+        WHERE g.school_year_id = ${yid}`;
 
       const poolBase = await sql`
         SELECT t.id, t.full_name AS name, t.short_name AS short,

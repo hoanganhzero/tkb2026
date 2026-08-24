@@ -240,7 +240,7 @@ export class RolloverService {
         INSERT INTO availability_slots (school_id, school_year_id, owner_type, owner_id,
                                         day_of_week, period_id, preference, reason, is_recurring)
         SELECT ${schoolId}, ${target.id}, av.owner_type, m.new_id,
-               av.day_of_week, p2.id, av.preference, av.reason, true
+               av.day_of_week, p2.new_id, av.preference, av.reason, true
         FROM availability_slots av
         JOIN (SELECT source_id AS old_id, id AS new_id FROM teachers WHERE school_year_id = ${target.id}) m
           ON m.old_id = av.owner_id

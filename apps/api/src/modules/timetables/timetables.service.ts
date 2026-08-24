@@ -311,7 +311,7 @@ export class TimetablesService {
 
       // Xung đột cứng: lớp/GV đã có tiết ở ô đích?
       const clash = await sql`
-        SELECT 'teacher' AS kind, u.name FROM (
+        SELECT 'teacher' AS kind, u.full_name AS name FROM (
           SELECT jt.teacher_id AS id FROM lesson_teachers jt
           JOIN lessons jl ON jl.id = jt.lesson_id
           JOIN assignment_teachers at2
