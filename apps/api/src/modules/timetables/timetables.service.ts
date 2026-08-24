@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { ApiError, notFound, staleVersion } from '../../common/api-error.js';
-import { requestContext } from '../../common/request-context.middleware.js';
+import { requestContext } from '../../common/request-context.js';
 import { fromGridPayload, buildTimetableSchoolXlsx } from '../export/xlsx.ts';
 import type { GridPayload } from '../../lib/grid-payload.js';
 import { scanConflicts, type ConflictOut } from './conflicts.ts';

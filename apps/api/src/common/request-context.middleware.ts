@@ -1,18 +1,9 @@
 import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
-import { AsyncLocalStorage } from 'node:async_hooks';
 import { verifyJwt } from './jwt.util.js';
 import { ApiError } from './api-error.js';
 import { DbService } from '../db/db.service.js';
-
-export interface RequestContextData {
-  userId?: string;
-  schoolId?: string;
-  role?: string;            // member_role từ CSDL
-  connectionId?: string;    // X-Connection-Id — WS không phát lại cho chính người gửi (§5.4)
-}
-
-export const requestContext = new AsyncLocalStorage<RequestContextData>();
+import { requestContext, type RequestContextData } from './request-context.js';
 
 const PUBLIC_ROUTES = [
   '/v1/healthz',

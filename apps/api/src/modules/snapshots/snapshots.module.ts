@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Inject, Injectable, Module, Param, Post } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
 import { ApiError, notFound } from '../../common/api-error.js';
-import { requestContext } from '../../common/request-context.middleware.js';
+import { requestContext } from '../../common/request-context.js';
 import {
   buildSnapshotPayload, validateSnapshotPayload,
   type SnapshotPayload, type SnapshotLessonRow, type SnapshotChildPair

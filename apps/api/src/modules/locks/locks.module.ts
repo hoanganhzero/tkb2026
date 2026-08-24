@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Inject, Module, Param, Post } from '@nestjs/common';
 import { DbService } from '../../db/db.service.js';
-import { requestContext } from '../../common/request-context.middleware.js';
+import { requestContext } from '../../common/request-context.js';
 import { ApiError, notFound } from '../../common/api-error.js';
 import {
   evaluateAcquire, HEARTBEAT_MS, LOCK_TTL_MS,

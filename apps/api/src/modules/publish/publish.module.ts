@@ -2,7 +2,7 @@ import { Controller, Get, Inject, Injectable, Module, Param, Post } from '@nestj
 import crypto from 'node:crypto';
 import { DbService } from '../../db/db.service.js';
 import { ApiError, notFound } from '../../common/api-error.js';
-import { requestContext } from '../../common/request-context.middleware.js';
+import { requestContext } from '../../common/request-context.js';
 import {
   publishBlocker, unpublishBlocker, makePublicSlug
 } from './publish.logic.ts';

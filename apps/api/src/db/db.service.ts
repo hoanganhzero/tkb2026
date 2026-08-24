@@ -1,6 +1,6 @@
 import { Global, Injectable, Module, OnModuleDestroy } from '@nestjs/common';
 import postgres from 'postgres';
-import { requestContext } from '../common/request-context.middleware.js';
+import { requestContext } from '../common/request-context.js';
 
 /**
  * Driver postgres.js với `prepare: false` — BẮT BUỘC khi đứng sau PgBouncer
