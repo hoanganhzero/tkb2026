@@ -259,9 +259,6 @@ async function main() {
       teacherByAssignment.set(assignmentRows[ci * subjects.length + si].id, teacher.id);
     }
   }
-  for (const w of writes) {
-    childClasses.push({ lesson_id: w.lesson_id ?? null });
-  }
   // Cần lesson_id sau bulk insert — truy lại theo (assignment, slot)
   const inserted = await sql`
     SELECT id, assignment_id, day_of_week, period_id FROM lessons WHERE timetable_id = ${tt.id}`;
