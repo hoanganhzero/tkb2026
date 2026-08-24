@@ -69,8 +69,9 @@ export class LocksController {
 
       for (const classId of result.granted) {
         await sql`
-          INSERT INTO timetable_locks (timetable_id, class_id, user_id, expires_at)
-          VALUES (${tid}, ${classId}, ${userId}, now() + (${LOCK_TTL_MS} || ' milliseconds')::interval)
+          INSERT INTO timetable_locks (school_id, timetable_id, class_id, user_id, expires_at)
+          VALUES (current_school_id(), ${tid}, ${classId}, ${userId},
+                  now() + (${LOCK_TTL_MS} || ' milliseconds')::interval)
           ON CONFLICT (timetable_id, class_id)
           DO UPDATE SET user_id = EXCLUDED.user_id,
                         acquired_at = now(),

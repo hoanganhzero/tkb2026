@@ -31,10 +31,10 @@ export class TimetablesService {
 
     const tt = await this.db.tx(async (sql) => {
       const rows = await sql`
-        SELECT id, name, status, version, soft_score AS "softScore",
-               hard_violations AS "hardViolations",
-               extract(epoch from updated_at)::bigint AS upd,
-               active_days AS "activeDays"
+        SELECT t.id, t.name, t.status, t.version, t.soft_score AS "softScore",
+               t.hard_violations AS "hardViolations",
+               extract(epoch from t.updated_at)::bigint AS upd,
+               y.active_days AS "activeDays"
         FROM timetables t JOIN school_years y ON y.id = t.school_year_id
         WHERE t.id = ${tid}`;
       if (!rows.length) throw notFound('thời khoá biểu');

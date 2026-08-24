@@ -149,11 +149,13 @@ export class AssignmentsService {
       const { ops, warnings } = planApply(existing, qualified, itemsIn);
 
       let done = 0;
+      const data: Array<{ id: string; classId: string; subjectId: string }> = [];
       for (const op of ops) {
-        await this.execOp(sql as any, yid, op, meta);
+        const created = await this.execOp(sql as any, yid, op, meta);
+        if (created) data.push(created);
         done++;
       }
-      return { appliedOps: done, warnings };
+      return { appliedOps: done, warnings, data };
     });
   }
 
@@ -175,7 +177,7 @@ export class AssignmentsService {
                   VALUES (${a.id}, ${tid}, ${primary})`;
         primary = false;
       }
-      return;
+      return { id: String(a.id), classId: op.classId, subjectId: op.subjectId };
     }
 
     if (op.kind === 'delete') {

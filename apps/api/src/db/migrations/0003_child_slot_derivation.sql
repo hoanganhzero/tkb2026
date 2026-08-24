@@ -30,3 +30,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Học kỳ cũng cần truy vết nguồn giống các danh mục khác khi rollover.
+ALTER TABLE semesters
+    ADD COLUMN IF NOT EXISTS source_id uuid REFERENCES semesters(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS semesters_source_idx
+    ON semesters (source_id) WHERE source_id IS NOT NULL;

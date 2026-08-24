@@ -91,6 +91,12 @@ async function main() {
   const gid = grade.json?.id;
   ok(grade.status < 300 && !!gid, 'tao khoi 10');
 
+  // Rollover cần một dải ít nhất hai khối; tạo đủ mô hình THPT 10–12.
+  await req('POST', `/v1/schools/${schoolId}/years/${yid}/grades`,
+    { name: 'Khoi 11', ordinal: 11 });
+  await req('POST', `/v1/schools/${schoolId}/years/${yid}/grades`,
+    { name: 'Khoi 12', ordinal: 12 });
+
   const subj = await req('POST', `/v1/schools/${schoolId}/years/${yid}/subjects`,
     { code: 'TOAN', name: 'Toan hoc', short_name: 'Toan', difficulty: 5 });
   const subjId = subj.json?.id;
@@ -150,7 +156,7 @@ async function main() {
   ok(mv.status < 300, 'move hop le');
 
   const blocked = await req('PATCH', `/v1/lessons/${placed[1]}/move`,
-    { toSlot: { dayOfWeek: 1, periodId: periodList[0].id } });
+    { toSlot: { dayOfWeek: 1, periodId: periodList[2].id } });
   ok(blocked.status === 409, `move vao o da co -> 409 (nhan ${blocked.status})`);
 
   // 7. locks
