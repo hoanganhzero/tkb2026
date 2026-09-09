@@ -1,112 +1,113 @@
-# TKB SaaS — Nền tảng xếp thời khoá biểu cho trường phổ thông Việt Nam
+# vinext-starter
 
-SaaS đa trường: biến ~500 dòng phân công giảng dạy thành lưới 45 lớp × không một xung đột,
-trong vài giờ thay vì vài ngày. Stack: Node.js monorepo · NestJS · React · PostgreSQL 16 · Redis.
+A clean full-stack starter running on
+[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
+Drizzle support.
 
-> **Người tiếp theo code**: đọc `docs/analysis/design-review.md` (bất biến đã chốt +
-> bẫy đã gặp) và `docs/analysis/gaps-and-roadmap.md` (còn thiếu gì, làm gì tiếp) trước khi viết dòng đầu.
+## Prerequisites
 
-## Bản đồ repo
+- Node.js `>=22.13.0`
+- Linux with `flock`, `curl`, and GNU `timeout`
 
+## Sites Lifecycle
+
+The Sites lifecycle CLI runs the locked dependency install before returning this checkout. Edit the source under `app/`, then checkpoint when a coherent milestone is ready to inspect or share. The remote Sites builder runs `npm run build` against the pushed commit. Do not repeat install or build as a normal pre-checkpoint step.
+
+This starter does not use `wrangler.jsonc`.
+
+`install:ci` is intentionally a single, non-retrying `npm ci`. It refuses a concurrent install for the same project, consumes a matching image-seeded npm cache with `--prefer-offline` while retaining registry fallback for a missing cache object, otherwise downloads and verifies the complete vinext tarball recorded in `package-lock.json`, limits npm to one socket, and terminates a stalled install. `build` applies a short timeout. These helpers target Linux and use GNU `timeout`; they are not native macOS scripts.
+
+Scripts that need writable project-scoped home, npm, XDG, and temporary paths use `scripts/sites-env.sh`. The `dev` and `start` scripts honor the caller's runtime environment and keep Wrangler logs inside the checkout. The generated `.sites-runtime/` directory is disposable and ignored by Git.
+
+## Included Shape
+
+- edit site code under `app/`
+- `app/chatgpt-auth.ts` provides optional dispatch-owned ChatGPT sign-in helpers
+- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
+- `vite.config.ts` simulates declared bindings for local development
+- `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
+- `db/schema.ts` starts intentionally empty
+- `examples/d1/` contains an optional D1 example surface
+- `drizzle.config.ts` supports local migration generation when needed
+
+## Workspace Auth Headers
+
+OpenAI workspace sites can read the current user's email from
+`oai-authenticated-user-email`.
+
+SIWC-authenticated workspace sites may also receive
+`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
+`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
+`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
+
+Treat the full name as optional and fall back to email when it is absent:
+
+```tsx
+import { headers } from "next/headers";
+
+export default async function Home() {
+  const requestHeaders = await headers();
+  const email = requestHeaders.get("oai-authenticated-user-email");
+  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
+  const fullName =
+    encodedFullName &&
+    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
+      "percent-encoded-utf-8"
+      ? decodeURIComponent(encodedFullName)
+      : null;
+
+  const displayName = fullName ?? email;
+  // ...
+}
 ```
-docs/
-  design/            13+ tài liệu thiết kế đầy đủ (schema, solver, API, UI, import/export,
-                     rollover, hạ tầng, thanh toán & Nghị định 13) — NGUỒN SỰ THẬT nghiệp vụ
-  analysis/
-    design-review.md     phát hiện review + trạng thái vá + quy ước bắt buộc
-    gaps-and-roadmap.md  còn thiếu gì, thứ tự làm, ước lượng theo doc gốc
-    session-log.md       nhật ký dựng khung + lỗi test đã bắt + bài học công cụ
-apps/
-  api/      NestJS — auth, tenant context SET LOCAL + RLS, grid dạng cột (ETag),
-            move/swap, error envelope tiếng Việt
-  web/      React 18 + Vite + Tailwind — màn hình xếp TKB, đèn giao thông qua cost-core
-  worker/   BullMQ bọc solver + phần thuần mapRows/resultToWrites (đã test)
-packages/
-  cost-core/   hàm chi phí S1–S12 dùng chung worker/API/client (golden tests)
-  solver-core/ Pha A greedy+ejection · Pha B SA với M1/M2/Kempe (golden tests)
-  import-core/ chuẩn hoá + ánh xạ cột + luật nhập Excel dùng chung (golden tests)
-```
 
-## Chạy nhanh
+## Optional Dispatch-Owned ChatGPT Sign-In
 
-```bash
-docker compose up -d          # PostgreSQL 16 + Redis 7
-npm install                   # npm workspaces
-cp apps/api/.env.example apps/api/.env
-npm run db:migrate            # 0001 schema đầy đủ + 0002 rollover
-npx tsx apps/api/scripts/seed.mjs    # trường mẫu + TKB xếp thật bởi solver
-npm run dev:api               # :4000/v1  (admin@truong.vn / matkhau-8ky-tu)
-npm run dev:web               # :5173
-```
+Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
+optional or required ChatGPT sign-in:
 
-## Test
+- Use `getChatGPTUser()` for optional signed-in UI.
+- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
+  anonymous visitors through Sign in with ChatGPT.
+- In a Server Component, start sign-in with
+  `<a href={chatGPTSignInPath(returnTo)} target="_top">`. The auth helper
+  module is server-only; do not import it into a Client Component.
+- Do not use `fetch`, XHR, a client-side router, or a framework link that can
+  prefetch the sign-in route. SIWC must start as a top-level navigation.
+- Never request the AuthAPI authorization endpoint directly. The dispatch-owned
+  `/signin-with-chatgpt` route must start the SIWC flow.
+- Use `chatGPTSignOutPath(returnTo)` for browser sign-out links or actions.
+- Pass a same-origin relative `returnTo` path for the destination after sign-in
+  or sign-out. The helper validates and safely encodes it.
+- Mark protected pages with `export const dynamic = "force-dynamic"` because
+  they depend on per-request identity headers.
 
-```bash
-npm run test:all              # 76 golden tests của 4 package + API logic
-npx tsc --noEmit -p apps/api && npx tsc --noEmit -p apps/web && npx tsc --noEmit -p apps/worker
-cd apps/web && npx vite build
-```
+Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
+OAuth cookies, and identity header injection. Do not implement app routes for
+those reserved paths. Routes that do not import and call the helper remain
+anonymous-compatible.
 
-## E2E smoke (máy có Docker)
+SIWC establishes identity only; it does not prove workspace membership. Use the
+Sites hosting platform's access policy controls for workspace-wide restrictions,
+or enforce explicit server-side membership or allowlist checks.
 
-```bash
-docker compose up -d
-npm run db:migrate
-npx tsx apps/api/scripts/seed.mjs        # hoặc để E2E tự sinh qua API
+Use SIWC for account pages, user-specific dashboards, saved records, and write
+actions tied to the current ChatGPT user. Leave public content anonymous.
 
-cd apps/api && npx tsx src/main.ts &     # boot API :4000
-sleep 8 && cd ..
-node e2e/smoke.mjs                       # ~30 assertion toàn chuỗi, exit 0/1
-```
+## Diagnostic Commands
 
-Script tự sinh dữ liệu **qua API** (đăng ký trường mới mỗi lần chạy, email ngẫu nhiên)
-nên chạy lại được bao nhiêu lần cũng được. CI (GitHub Actions) đã nhúng
-Postgres 16 + Redis 7 service containers và chạy E2E này trên mọi push.
+- `npm run install:ci`: perform the one bounded lockfile install
+- `npm run dev`: start the Vite/Vinext development server
+- `npm run build`: build the deployable Sites artifact
+- `npm run start`: start the built Vinext application
+- `npm test`: build and verify the rendered development-preview metadata
+- `npm run db:generate`: generate Drizzle migrations after schema changes
 
-## Trạng thái kiểm chứng
+Use build commands for targeted diagnosis after a remote failure, not as part of the normal checkpoint path.
 
-| Thành phần | Mức độ | Ghi chú |
-|---|---|---|
-| `packages/cost-core` | ✅ **5/5** | Ca vàng tính tay từng điểm + bất biến incremental≡full qua 600 move ngẫu nhiên |
-| `packages/solver-core` | ✅ **5/5** | 153/153 kín · 0 xung đột cứng sau SA · SA ≤ greedy · deterministic · ghim tuyệt đối · phát hiện bất khả thi |
-| `packages/import-core` | ✅ **12/12** | Chuẩn hoá, từ điển cột, tìm header, ma trận Lớp×Môn, matcher 4 tầng, luật §4.3 |
-| `packages/rollover-core` | ✅ **7/7** | promoteClassName · graduate/skip-xáo trộn/tuyển mới theo mẫu # · followClass/keepGrade · số tiết lấy từ cấu hình khối MỚI · cảnh báo nghỉ/vượt định mức/thiếu môn |
-| `apps/api — locks` | ✅ **6/6** logic thuần + REST typecheck sạch | TTL 60s · heartbeat 20s · takeover owner/admin luôn, scheduler cần im lặng >5 phút · cấp từng phần |
-| `apps/api — export/ics` | ✅ **5/5** | VTIMEZONE · RRULE BYDAY ISO · EXDATE trùng weekday · escape/fold · VALARM |
-| `apps/worker` | ✅ **9/9** (4 map + 5 persist) | persist đúng thứ tự §12.3: snapshot→delete(chỉ chưa ghim)→unnest bulk→children→update |
-| `apps/api — catalog` | ✅ **7/7** schema + CRUD 6 resource typecheck sạch | Whitelist cột chặn ghi đè school_id/year từ body; grade-configs, teacher-subjects, workload; bulk một transaction; unique/FK → 409 tiếng Việt |
-| `apps/api — assignments` | ✅ **3/3** pure + REST typecheck sạch | GET matrix (Tổng đỏ/thiếu, hàng Tổng môn, pool sắp tải tăng, ⛓ ghép lớp) · POST bulk planApply create/update_ppw/update_teachers/delete tối thiểu (xoá 1 lớp của ghép chỉ gỡ assignment_classes) · GET validation khung/định mức |
-| `apps/api — availability` | ✅ **3/3** logic + REST | validate/dedupe ô bận-rảnh, diffSlots PUT ghi đè tối thiểu op, bulk quét chuột upsert/remove, is_recurring cho rollover |
-| `apps/api — snapshots` | ✅ **3/3** logic + REST | buildPayload giữ nguyên lesson id → khôi phục không cần ánh xạ; validate version; restore trong một transaction |
-| `apps/api — publish` | ✅ **3/3** logic + REST | chặn khi còn lỗi cứng/archived; slug công khai `school-tkb-year-hkN-rand`; unpublish về ready + tắt is_public |
-| `apps/api — conflicts` | ✅ **3/3** pure + route | quét thiếu/thừa tiết + vi phạm ô khai báo bận (hard), cache `timetable_conflicts`; trùng GV/lớp không thể tồn tại nhờ unique index |
-| `apps/api — rollover preview` | ✅ typecheck sạch | GET preview dùng rollover-core trên dữ liệu thật; POST apply trả 501 chờ transaction §7.1 |
-| `apps/web — availability UI` | ✅ typecheck sạch | lưới 4 trạng thái click-đổi, quick actions (Nghỉ T7/Chỉ sáng/Xoá), cảnh báo cam ô rảnh < 2× tiết, PUT ghi đè |
-| `apps/api — rollover apply` | ✅ typecheck sạch | transaction §7.1 đúng thứ tự phụ thuộc; source_id truy vết; chỉ mang availability is_recurring; job completed + undo 14 ngày; chặn target trùng |
-| `apps/api — export bảng` | ✅ typecheck sạch | buildTableXlsx dùng chung (định dạng điều kiện đỏ/xanh cột delta) · routes assignments/workload |
-| `apps/web — import UI` | ✅ typecheck sạch | 3 bước: paste/file → preview lỗi server → commit upsert; exceljs lazy-load |
-| `apps/web — danh mục CRUD` | ✅ typecheck sạch | generic 6 resource qua catalog endpoints; form fields theo resource; xoá có guard IN_USE |
-| `apps/web — rollover shell` | ✅ typecheck sạch | wizard shell bước 4–5 hiển thị preview thật (ánh xạ + cảnh báo); nút Áp dụng khoá chờ endpoint apply |
-| `apps/api — ws` | ✅ **3/3** lõi transport | SeqBuffer resume/since + resync khi hụt · seq riêng từng kênh · envelope originConnectionId; gateway socket.io wired, kiểm tra thành viên trước subscribe |
-| `apps/api — export.xlsx` | ✅ **2/2** + route | ExcelJS timetable_school: Times New Roman, nền màu môn, freeze, A3 fitWidth; từ GridPayload qua adapter thuần |
-| `apps/api — imports` | ✅ **3/3** mapper + validate/commit teachers | Server LUÔN kiểm tra lại bằng import-core; không commit khi còn error; upsert theo mã GV |
-| `apps/api` tổng thể | ✅ typecheck sạch · boot thật (healthz 200, guard 401) | E2E DB chờ Docker |
-| `apps/web` | ✅ typecheck sạch · vite build OK | runtime UI cần API + DB |
+The timeout defaults can be overridden for a controlled canary with `SITES_INSTALL_TIMEOUT`, `SITES_INSTALL_KILL_AFTER`, `SITES_BUILD_TIMEOUT`, and `SITES_BUILD_KILL_AFTER`. A timeout fails the command; the helpers never retry an unchanged install or build.
 
-Lỗi thật mà test bắt được và đã sửa (chi tiết trong session-log): M2 hoán đổi thiếu
-kiểm tra occupancy động trục GV; fullMask sai quy ước bit thấp sinh ô "ma"; fixture nhầm
-assignment gộp lớp; ghim bị skip âm thầm; mojibake do patch PowerShell (**lặp lại 2 lần
-vì quên bài học của chính mình** — đã ghi thành quy tắc cấm ở session-log mục 9).
+## Learn More
 
-## Quy ước bất biến (đọc design-review.md mục C trước khi phá)
-
-1. Ràng buộc cứng ở tầng thấp nhất (DB unique index + định nghĩa phép biến đổi)
-2. Một hàm chi phí duy nhất — client và server phải ra cùng kết quả từng byte
-3. Incremental === recomputeAll sau mọi phép biến đổi
-4. Ba GUC set qua `DbService.tx()` — không raw-query ngoài nó
-5. Khuôn lỗi `{error:{code,message,details},requestId}` tiếng Việt
-6. Migration chỉ cộng thêm; đóng băng migration tháng 8
-
-## Đưa lên GitHub
-
-Máy chưa có git — cài xong chạy đúng ba lệnh trong `PUSH-LEN-GITHUB.md`.
+- [vinext Documentation](https://github.com/cloudflare/vinext)
+- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
